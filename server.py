@@ -31,6 +31,7 @@ CORS(app)
 
 Password = os.getenv('PASSWORD')
 
+
 GEMINI_API_KEY = os.getenv('GOOGLE_API_KEY')
 if not GEMINI_API_KEY:
     print("CRITICAL WARNING: GOOGLE_API_KEY environment variable not set. Gemini AI calls will fail.")
