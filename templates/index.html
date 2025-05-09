@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>User Activity & Ticket Dashboard - CloudKeeper</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #0052CC;
+            --secondary-color: #0065FF;
+            --cta-color: #00A3BF;
+            --text-dark: #172B4D;
+            --text-light: #505F79;
+            --background-light: #F4F5F7;
+            --white: #FFFFFF;
+            --border-color: #DFE1E6;
+            --success-bg: #E3FCEF;
+            --success-text: #006644;
+            --info-bg: #DEEBFF;
+            --info-text: #0052CC;
+            --warning-bg: #FFFAE6;
+            --warning-text: #FF8B00;
+            --progress-bg: #E7F3FF;
+            --progress-text: #0052CC;
+            --resolved-bg: #E3FCEF;
+            --resolved-text: #006644;
+            --closed-bg: #EBEDF0;
+            --closed-text: #505F79;
+            --font-family: 'Inter', 'Arial', sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-family);
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: var(--background-light);
+        }
+        .app-container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .app-header { background-color: var(--white); padding: 15px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .header-content {
+            display: flex; justify-content: space-between; align-items: center;
+            max-width: 1200px; margin: 0 auto; padding: 0 20px;
+        }
+        .app-logo-text { font-size: 1.5em; font-weight: 600; color: var(--text-dark); text-decoration: none; }
+        .app-logo-text img { height: 35px; vertical-align: middle; margin-right: 8px;}
+        .user-actions a {
+            color: var(--text-dark); font-weight: 500; margin-left: 15px;
+            text-decoration: none; padding: 8px 12px; border-radius: 6px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .user-actions a:hover { background-color: var(--background-light); color: var(--primary-color); }
+        .user-actions .btn-nav { border: 1px solid var(--border-color); }
+        .user-actions .btn-nav:hover { border-color: var(--primary-color); }
+        .user-actions .btn-logout { background-color: var(--primary-color); color: var(--white); }
+        .user-actions .btn-logout:hover { background-color: var(--secondary-color); border-color: var(--secondary-color); }
+
+        /* ... (your :root and other global styles remain the same) ... */
+
+.main-content { padding: 30px 20px; } /* Ensure consistent padding for main content */
+.page-title {
+    font-size: 2em; font-weight: 600; color: var(--text-dark);
+    margin-bottom: 30px; /* Increased bottom margin */
+    text-align: left; /* Or center if you prefer for main page title */
+}
+
+.stats-summary {
+    display: flex;
+    gap: 20px; /* Consistent gap */
+    margin-bottom: 40px; /* Increased bottom margin */
+    flex-wrap: wrap;
+}
+.stat-card {
+    background-color: var(--white); padding: 25px; border-radius: 8px; /* Slightly more padding */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06); flex: 1; text-align: center;
+    min-width: 220px; /* Increased min-width for better balance */
+}
+.stat-card h4 { font-size: 1.05em; color: var(--text-light); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-card p { font-size: 2.2em; font-weight: 700; color: var(--primary-color); }
+
+.charts-row {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 40px; /* Increased bottom margin */
+    align-items: stretch; /* Make chart wrappers same height if possible */
+    flex-wrap: wrap;
+}
+.chart-container-wrapper {
+    flex: 1 1 400px;
+    min-width: 320px; /* Ensure it doesn't get too small before wrapping */
+    background-color: var(--white);
+    padding: 25px; /* Increased padding */
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    position: relative;
+    display: flex; /* Use flex to center title and canvas better */
+    flex-direction: column;
+    height: 400px; /* Maintain fixed height */
+}
+ .chart-container-wrapper h3 {
+    font-size: 1.2em; /* Slightly smaller title */
+    margin-bottom: 20px;
+    text-align: center;
+    color: var(--text-dark);
+    font-weight: 600;
+}
+.chart-container-wrapper canvas {
+    max-height: calc(100% - 40px); /* Adjust based on h3 margin and padding */
+    max-width: 100%;
+    display: block; /* Helps with sizing in flex container */
+    margin: auto; /* Center canvas if it's smaller than wrapper */
+}
+
+.table-container {
+    flex: 1;
+    min-width: 100%;
+    margin-top: 0; /* Removed specific margin-top, rely on charts-row bottom margin */
+}
+.styled-table-wrapper {
+    background-color: var(--white); border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.07);
+    padding: 25px; /* Consistent padding */
+}
+.table-title { /* New class for table title */
+    font-size: 1.4em;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 20px;
+    text-align: center; /* Center table title */
+}
+
+/* ... (rest of .styled-table and .app-footer styles are likely fine) ... */
+
+/* Chart.js specific legend improvements for Pie Chart */
+.chartjs-legend ul { /* Target generated legend if Chart.js creates one */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding-left: 0;
+    margin-top: 15px;
+}
+.chartjs-legend li {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin-right: 15px;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+}
+.chartjs-legend li span { /* The color box */
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 8px;
+    border-radius: 2px;
+}
+        .table-container { flex: 1; min-width: 100%; /* Make table take full width if charts wrap above */ }
+        .styled-table-wrapper {
+            background-color: var(--white); border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.07); overflow: hidden; padding: 20px;
+        }
+        .styled-table { width: 100%; border-collapse: collapse; }
+        .styled-table th, .styled-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .styled-table thead th {
+            background-color: var(--success-bg); color: var(--success-text);
+            font-weight: 600; font-size: 0.9em; text-transform: uppercase;
+            letter-spacing: 0.5px; border-bottom: 2px solid var(--primary-color); cursor: pointer;
+        }
+        .styled-table thead th:hover { background-color: #d1e7dd; }
+        .styled-table tbody tr:hover { background-color: #f9fafb; }
+        .styled-table tbody tr:last-child td { border-bottom: none; }
+        .styled-table tbody td a { font-weight: 500; text-decoration: none; color: var(--primary-color); }
+        .styled-table tbody td a:hover { text-decoration: underline; color: var(--secondary-color); }
+
+        .app-footer {
+            text-align: center; padding: 20px 0; margin-top: 30px;
+            font-size: 0.9em; color: var(--text-light); border-top: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-content">
+            <a href="{{ url_for('home_or_main') }}" class="app-logo-text">
+                <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="CloudKeeper Logo">
+            </a>
+            <nav class="user-actions">
+                <a href="{{ url_for('chatbot_page') }}" class="btn-nav"><i class="fas fa-user-tag"></i>Chat Assisstance</a>
+
+                <a href="{{ url_for('view_tickets_page') }}" class="btn-nav"><i class="fas fa-list-alt"></i> All Tickets</a>
+                <a href="{{ url_for('user_ticket_view_page') }}" class="btn-nav"><i class="fas fa-user-tag"></i> Tickets by User</a>
+                <a href="{{ url_for('form') }}" class="btn-nav"><i class="fas fa-plus-circle"></i> New Ticket</a>
+                <a href="{{ url_for('gdoc_importer_page') }}" class="btn-nav"><i class="fab fa-google-drive"></i> Import GDoc</a>
+                <a href="{{ url_for('logout') }}" class="btn-logout">Logout <i class="fas fa-sign-out-alt"></i></a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="app-container">
+            <h1 class="page-title">User Activity & Ticket Dashboard</h1>
+
+            <div class="stats-summary">
+                <div class="stat-card">
+                    <h4>Total Users with Tickets</h4>
+                    <p id="totalUsersCount">0</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Total Tickets Submitted</h4>
+                    <p id="totalTicketsCount">0</p>
+                </div>
+                 <div class="stat-card">
+                    <h4>Open Tickets</h4>
+                    <p id="openTicketsCount">0</p>
+                </div>
+            </div>
+
+            <div class="charts-row">
+                <div class="chart-container-wrapper">
+                    <h3>Tickets per User</h3>
+                    <canvas id="userTicketBarChart"></canvas>
+                </div>
+                <div class="chart-container-wrapper">
+                    <h3>Ticket Status Distribution</h3>
+                    <canvas id="ticketStatusPieChart"></canvas>
+                </div>
+                <div class="chart-container-wrapper">
+                    <h3>Tickets Created Over Time</h3>
+                    <canvas id="ticketsOverTimeChart"></canvas>
+                </div>
+            </div>
+
+            <div class="table-container" style="margin-top: 30px;">
+                <div class="styled-table-wrapper">
+                    <h3 class="table-title">User Ticket Summary</h3> 
+                    <table class="styled-table" id="userCountsTable">
+                        <thead>
+                            <tr>
+                                <th data-sort="username">User Name <i class="fas fa-sort"></i></th>
+                                <th data-sort="ticket_count">Number of Tickets <i class="fas fa-sort"></i></th>
+                            </tr>
+                        </thead>
+                        <tbody id="userCountsTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <p>© 2024 CloudKeeper (Team Laadla). All rights reserved.</p>
+    </footer>
+
+    <script>
+        const usersDataFromFlask = [
+            {% for user in users %}
+                { username: "{{ user[0]|e }}", ticket_count: {{ user[1] }} },
+            {% else %}
+                // Ensures usersDataFromFlask is an empty array if no users
+            {% endfor %}
+        ];
+
+        let sortDirection = { username: 'asc', ticket_count: 'asc' };
+        let currentSortColumn = 'username'; // Default sort
+
+        let userTicketBarChartInstance = null;
+        let ticketStatusPieChartInstance = null;
+
+        function renderTable(data) {
+            const tableBody = document.getElementById('userCountsTableBody');
+            tableBody.innerHTML = '';
+            if (!data || data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding: 20px; color: var(--text-light);">No user data available.</td></tr>';
+                return;
+            }
+            data.forEach(user => {
+                const row = tableBody.insertRow();
+                const cellUser = row.insertCell();
+                const cellCount = row.insertCell();
+                const userLink = document.createElement('a');
+                userLink.href = `{{ url_for('user_ticket_view_page') }}#${encodeURIComponent(user.username)}`;
+                userLink.textContent = user.username;
+                cellUser.appendChild(userLink);
+                cellCount.textContent = user.ticket_count;
+            });
+        }
+
+        function sortData(column) {
+            const newDirection = (column === currentSortColumn && sortDirection[column] === 'asc') ? 'desc' : 'asc';
+            sortDirection[column] = newDirection;
+            currentSortColumn = column;
+
+            usersDataFromFlask.sort((a, b) => {
+                let valA = a[column];
+                let valB = b[column];
+                if (column === 'username') {
+                    valA = valA.toLowerCase();
+                    valB = valB.toLowerCase();
+                }
+                if (valA < valB) return newDirection === 'asc' ? -1 : 1;
+                if (valA > valB) return newDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+            renderTable(usersDataFromFlask);
+            updateSortIcons();
+        }
+
+        function updateSortIcons() {
+            document.querySelectorAll('#userCountsTable thead th i').forEach(icon => {
+                icon.className = 'fas fa-sort';
+            });
+            const activeThIcon = document.querySelector(`#userCountsTable thead th[data-sort="${currentSortColumn}"] i`);
+            if (activeThIcon) {
+                activeThIcon.className = `fas fa-sort-${sortDirection[currentSortColumn] === 'asc' ? 'up' : 'down'}`;
+            }
+        }
+
+        function renderUserTicketBarChart(data) {
+            const canvasEl = document.getElementById('userTicketBarChart');
+            if (!canvasEl || !data || data.length === 0) {
+                if(canvasEl){
+                    const barCtx = canvasEl.getContext('2d');
+                    barCtx.clearRect(0,0,canvasEl.width,canvasEl.height);
+                    barCtx.textAlign = 'center'; barCtx.font = '14px var(--font-family)';
+                    barCtx.fillStyle = 'var(--text-light)';
+                    barCtx.fillText('No data for user ticket chart.', canvasEl.width/2, canvasEl.height/2);
+                }
+                return;
+            }
+            const ctx = canvasEl.getContext('2d');
+            const labels = data.map(user => user.username);
+            const counts = data.map(user => user.ticket_count);
+            const chartColors = ['rgba(0, 82, 204, 0.7)', 'rgba(0, 101, 255, 0.7)', 'rgba(0, 163, 191, 0.7)','rgba(0, 128, 128, 0.7)', 'rgba(75, 192, 192, 0.7)'];
+            const backgroundColors = labels.map((_, i) => chartColors[i % chartColors.length]);
+
+            if (userTicketBarChartInstance) userTicketBarChartInstance.destroy();
+            userTicketBarChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Tickets per User',
+                        data: counts,
+                        backgroundColor: backgroundColors,
+                        borderColor: backgroundColors.map(color => color.replace('0.7', '1')),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+                    scales: {
+                        x: { beginAtZero: true, ticks: { precision: 0 } },
+                        y: { ticks: { autoSkip: false } } // Prevent y-axis labels from being skipped if too many
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function fetchTicketStatusData() {
+            try {
+                const response = await fetch("{{ url_for('get_ticket_status_summary') }}");
+                if (!response.ok) throw new Error('Failed to fetch status data');
+                const data = await response.json();
+
+                renderTicketStatusPieChart({
+                    labels: data.chart_labels,
+                    counts: data.chart_counts,
+                    colors: data.chart_colors
+                });
+                document.getElementById('openTicketsCount').textContent = data.open_tickets_count || 0;
+
+            } catch (error) {
+                console.error("Error fetching ticket status data:", error);
+                const pieChartCanvas = document.getElementById('ticketStatusPieChart');
+                 if(pieChartCanvas) {
+                    const pieCtx = pieChartCanvas.getContext('2d');
+                    pieCtx.clearRect(0,0,pieChartCanvas.width,pieChartCanvas.height);
+                    pieCtx.textAlign = 'center'; pieCtx.font = '14px var(--font-family)';
+                    pieCtx.fillStyle = 'var(--text-light)';
+                    pieCtx.fillText('Could not load status data.', pieChartCanvas.width/2, pieChartCanvas.height/2);
+                 }
+                document.getElementById('openTicketsCount').textContent = 'N/A';
+            }
+        }
+
+        function renderTicketStatusPieChart(statusData) {
+            const canvasEl = document.getElementById('ticketStatusPieChart');
+             if (!canvasEl || !statusData || !statusData.labels || statusData.labels.length === 0) {
+                 if(canvasEl){
+                    const pieCtx = canvasEl.getContext('2d');
+                    pieCtx.clearRect(0,0,canvasEl.width,canvasEl.height);
+                    pieCtx.textAlign = 'center'; pieCtx.font = '14px var(--font-family)';
+                    pieCtx.fillStyle = 'var(--text-light)';
+                    pieCtx.fillText('No data for status chart.', canvasEl.width/2, canvasEl.height/2);
+                 }
+                return;
+            }
+            const ctx = canvasEl.getContext('2d');
+
+            if (ticketStatusPieChartInstance) ticketStatusPieChartInstance.destroy();
+            ticketStatusPieChartInstance = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: statusData.labels,
+                    datasets: [{
+                        label: 'Ticket Statuses',
+                        data: statusData.counts,
+                        backgroundColor: statusData.colors,
+                        borderColor: statusData.colors.map(color => color.replace('0.8', '1').replace('0.7','1')), // Ensure opacity is 1 for borders
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom', // Move legend to bottom for more pie space
+                            labels: {
+                                boxWidth: 15,
+                                padding: 20, // Spacing between legend items
+                                font: {
+                                    size: 13 // Slightly larger legend font
+                                }
+                            }
+                        },
+                        title: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += context.parsed;
+                                    }
+                                    let total = context.chart.getDatasetMeta(0).total;
+                                    let percentage = (context.raw / total * 100).toFixed(1) + '%';
+                                    label += ' (' + percentage + ')';
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateSummaryStats(data) {
+            document.getElementById('totalUsersCount').textContent = data ? data.length : 0;
+            const totalTickets = data ? data.reduce((sum, user) => sum + user.ticket_count, 0) : 0;
+            document.getElementById('totalTicketsCount').textContent = totalTickets;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            renderTable(usersDataFromFlask); 
+            if (usersDataFromFlask && usersDataFromFlask.length > 0) {
+                updateSortIcons(); 
+                renderUserTicketBarChart(usersDataFromFlask);
+            } else {
+                 renderUserTicketBarChart(null); 
+            }
+            updateSummaryStats(usersDataFromFlask);
+            fetchTicketStatusData();
+
+            document.querySelectorAll('#userCountsTable thead th').forEach(th => {
+                th.addEventListener('click', () => {
+                    const column = th.getAttribute('data-sort');
+                    if (column) sortData(column);
+                });
+            });
+        });
+
+
+let ticketsOverTimeChartInstance = null;
+
+async function fetchTicketsOverTimeData() {
+    try {
+        const response = await fetch("{{ url_for('get_tickets_over_time_counts') }}"); // Use your new endpoint
+        if (!response.ok) throw new Error('Failed to fetch ticket trend data');
+        const data = await response.json();
+        renderTicketsOverTimeChart(data);
+    } catch (error) {
+        console.error("Error fetching tickets over time data:", error);
+        const canvasEl = document.getElementById('ticketsOverTimeChart');
+        if(canvasEl){
+            const ctx = canvasEl.getContext('2d');
+            ctx.clearRect(0,0,canvasEl.width,canvasEl.height);
+            ctx.textAlign = 'center'; ctx.font = '14px var(--font-family)';
+            ctx.fillStyle = 'var(--text-light)';
+            ctx.fillText('Could not load ticket trend data.', canvasEl.width/2, canvasEl.height/2);
+        }
+    }
+}
+
+function renderTicketsOverTimeChart(data) {
+    const canvasEl = document.getElementById('ticketsOverTimeChart');
+    if (!canvasEl || !data || !data.labels || data.labels.length === 0) {
+        if(canvasEl){
+            const ctx = canvasEl.getContext('2d');
+            ctx.clearRect(0,0,canvasEl.width,canvasEl.height);
+            ctx.textAlign = 'center'; ctx.font = '14px var(--font-family)';
+            ctx.fillStyle = 'var(--text-light)';
+            ctx.fillText('No data for ticket trends.', canvasEl.width/2, canvasEl.height/2);
+        }
+        return;
+    }
+    const ctx = canvasEl.getContext('2d');
+
+    if (ticketsOverTimeChartInstance) ticketsOverTimeChartInstance.destroy();
+    ticketsOverTimeChartInstance = new Chart(ctx, {
+        type: 'line', // Line chart
+        data: {
+            labels: data.labels, // Dates from backend
+            datasets: [{
+                label: 'Tickets Created',
+                data: data.counts, // Counts from backend
+                borderColor: 'var(--primary-color)',
+                backgroundColor: 'rgba(0, 82, 204, 0.2)', // Light fill
+                tension: 0.1, // Makes the line slightly curved
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0 // Whole numbers for counts
+                    }
+                },
+                x: { // For time-series data, you might want to configure time adapter
+                    ticks: {
+                        autoSkip: true,
+                        maxTicksLimit: 10 // Limit number of date labels shown
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                }
+            }
+        }
+    });
+}
+
+// Call this in your DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+    // ... your existing calls to loadUsers, fetchTicketStatusData ...
+    fetchTicketsOverTimeData(); // Add this call
+});
+
+    </script>
+</body>
+</html>

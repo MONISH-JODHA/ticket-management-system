@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>CloudKeeper Chatbot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0052CC;
+            --secondary-color: #0065FF;
+            --cta-color: #00A3BF;
+            --text-dark: #172B4D;
+            --text-light: #505F79;
+            --background-light: #F4F5F7;
+            --white: #FFFFFF;
+            --border-color: #DFE1E6;
+            --user-message-bg: #DEEBFF; /* Light blue for user messages */
+            --bot-message-bg: #E9ECEF;   /* Light grey for bot messages */
+            --font-family: 'Inter', 'Arial', sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-family);
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: var(--background-light);
+            display: flex;
+            flex-direction: column;
+            height: 100vh; /* Full viewport height */
+            overflow: hidden; /* Prevent body scroll */
+        }
+        .app-header { background-color: var(--white); padding: 15px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); flex-shrink: 0;}
+        .header-content {
+            display: flex; justify-content: space-between; align-items: center;
+            max-width: 1200px; margin: 0 auto; padding: 0 20px;
+        }
+        .app-logo-text { font-size: 1.5em; font-weight: 600; color: var(--text-dark); text-decoration: none; }
+        .app-logo-text img { height: 35px; vertical-align: middle; margin-right: 8px;}
+        .user-actions a {
+            color: var(--text-dark); font-weight: 500; margin-left: 15px;
+            text-decoration: none; padding: 8px 12px; border-radius: 6px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .user-actions a:hover { background-color: var(--background-light); color: var(--primary-color); }
+        .user-actions .btn-nav { border: 1px solid var(--border-color); }
+        .user-actions .btn-nav:hover { border-color: var(--primary-color); }
+        .user-actions .btn-logout { background-color: var(--primary-color); color: var(--white); }
+        .user-actions .btn-logout:hover { background-color: var(--secondary-color); border-color: var(--secondary-color); }
+
+        .chat-container-wrapper {
+            flex-grow: 1; /* Takes available vertical space */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-y: auto; /* Scroll for main content if needed, though chatbox has its own */
+        }
+        .chat-window {
+            width: 100%;
+            max-width: 700px;
+            height: calc(100vh - 150px); /* Adjust based on header/footer/input height */
+            max-height: 700px; /* Max height for the chat window */
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .chat-header {
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 15px 20px;
+            font-size: 1.2em;
+            font-weight: 600;
+            text-align: center;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+        .chat-messages {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .message {
+            padding: 10px 15px;
+            border-radius: 18px; /* More rounded for chat bubbles */
+            margin-bottom: 10px;
+            max-width: 75%;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+        .message.user {
+            background-color: var(--user-message-bg);
+            color: var(--text-dark);
+            align-self: flex-end;
+            border-bottom-right-radius: 5px; /* Flat corner for bubble tail */
+        }
+        .message.bot {
+            background-color: var(--bot-message-bg);
+            color: var(--text-dark);
+            align-self: flex-start;
+            border-bottom-left-radius: 5px; /* Flat corner */
+        }
+        .message pre { /* Styling for preformatted text from bot */
+            white-space: pre-wrap;
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #f0f0f0;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            overflow-x: auto;
+        }
+
+        .chat-input-area {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid var(--border-color);
+            background-color: #f8f9fa;
+        }
+        #userInput {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px; /* Rounded input */
+            margin-right: 10px;
+            font-size: 1em;
+            outline: none;
+        }
+        #userInput:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.1rem rgba(0, 82, 204, 0.25);
+        }
+        #sendButton {
+            background-color: var(--cta-color);
+            color: var(--white);
+            border: none;
+            padding: 0 20px;
+            border-radius: 20px; /* Rounded button */
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+        }
+        #sendButton:hover { background-color: #008DAA; }
+        #sendButton i { margin-left: 8px; }
+
+        .app-footer { flex-shrink: 0; /* Prevent footer from overlapping */ }
+
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-content">
+            <a href="{{ url_for('home_or_main') }}" class="app-logo-text">
+                <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="CloudKeeper Logo">
+                 CloudKeeper
+            </a>
+            <nav class="user-actions">
+                <a href="{{ url_for('form') }}" class="btn-nav"><i class="fas fa-plus-circle"></i> New Ticket</a>
+                <a href="{{ url_for('view_tickets_page') }}" class="btn-nav"><i class="fas fa-list-alt"></i> All Tickets</a>
+                <a href="{{ url_for('user_ticket_view_page') }}" class="btn-nav"><i class="fas fa-user-tag"></i> Tickets by User</a>
+                <a href="{{ url_for('index_counts_page') }}" class="btn-nav"><i class="fas fa-chart-bar"></i> User Counts</a>
+                <a href="{{ url_for('logout') }}" class="btn-logout">Logout <i class="fas fa-sign-out-alt"></i></a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="chat-container-wrapper">
+        <div class="chat-window">
+            <div class="chat-header">CloudKeeper Support Chat</div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot">Hello {{ username }}! How can I help you with your tickets today? You can ask things like "show ticket 123", "tickets by user@cloudkeeper.com", "open tickets", or "search tickets for login issue".</div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="userInput" placeholder="Type your message..." autocomplete="off">
+                <button id="sendButton">Send <i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer can be minimal or removed for a full-app feel on this page -->
+    <!-- <footer class="app-footer">
+        <p>© 2024 CloudKeeper (Team Laadla). All rights reserved.</p>
+    </footer> -->
+
+    <script>
+        const chatMessagesEl = document.getElementById('chatMessages');
+        const userInputEl = document.getElementById('userInput');
+        const sendButtonEl = document.getElementById('sendButton');
+
+        function addMessageToChat(text, sender) { // sender is 'user' or 'bot'
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender);
+            
+            // To render newlines from backend correctly in HTML
+            // And to wrap potential code blocks or structured data in <pre>
+            if (sender === 'bot' && (text.includes('\\n') || text.includes('```'))) {
+                const pre = document.createElement('pre');
+                pre.textContent = text.replace(/\\n/g, '\\n'); // Ensure newlines are rendered
+                messageDiv.appendChild(pre);
+            } else {
+                messageDiv.textContent = text;
+            }
+            
+            chatMessagesEl.appendChild(messageDiv);
+            chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight; // Auto-scroll to bottom
+        }
+
+        async function sendMessageToBot() {
+            const messageText = userInputEl.value.trim();
+            if (!messageText) return;
+
+            addMessageToChat(messageText, 'user');
+            userInputEl.value = ''; // Clear input
+            sendButtonEl.disabled = true; // Disable button while processing
+            sendButtonEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+
+            try {
+                const response = await fetch("{{ url_for('chat_api') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: messageText }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(()=>null);
+                    throw new Error(errorData?.reply || `Server error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                addMessageToChat(data.reply, 'bot');
+
+            } catch (error) {
+                console.error("Chat API error:", error);
+                addMessageToChat(`Sorry, I encountered an error: ${error.message}`, 'bot');
+            } finally {
+                sendButtonEl.disabled = false;
+                sendButtonEl.innerHTML = 'Send <i class="fas fa-paper-plane"></i>';
+                userInputEl.focus(); // Re-focus input
+            }
+        }
+
+        sendButtonEl.addEventListener('click', sendMessageToBot);
+        userInputEl.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent default form submission if it were in a form
+                sendMessageToBot();
+            }
+        });
+
+        userInputEl.focus(); // Focus input on page load
+
+    </script>
+</body>
+</html>

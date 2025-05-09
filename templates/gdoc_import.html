@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Import Ticket from Google Doc - CloudKeeper</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0052CC;
+            --secondary-color: #0065FF;
+            --cta-color: #00A3BF;
+            --text-dark: #172B4D;
+            --text-light: #505F79;
+            --background-light: #F4F5F7;
+            --white: #FFFFFF;
+            --border-color: #DFE1E6;
+            --success-bg: #E3FCEF;
+            --success-text: #006644;
+            --error-bg: #FFEBEE;  /* For error messages */
+            --error-text: #B00020; /* For error messages */
+            --info-bg: #E7F3FF;    /* For info messages */
+            --info-text: #0052CC;  /* For info messages */
+            --form-label-color: #42526E;
+            --font-family: 'Inter', 'Arial', sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-family);
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: var(--background-light);
+        }
+        .app-container { max-width: 900px; margin: 0 auto; padding: 0 20px; }
+        .app-header { background-color: var(--white); padding: 15px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .app-logo-text { font-size: 1.5em; font-weight: 600; color: var(--text-dark); text-decoration: none; }
+        .app-logo-text img { height: 35px; vertical-align: middle; margin-right: 8px;}
+        .user-actions a {
+            color: var(--text-dark); font-weight: 500; margin-left: 15px;
+            text-decoration: none; padding: 8px 12px; border-radius: 6px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .user-actions a:hover { background-color: var(--background-light); color: var(--primary-color); }
+        .user-actions .btn-nav { border: 1px solid var(--border-color); }
+        .user-actions .btn-nav:hover { border-color: var(--primary-color); }
+        .user-actions .btn-logout { background-color: var(--primary-color); color: var(--white); }
+        .user-actions .btn-logout:hover { background-color: var(--secondary-color); border-color: var(--secondary-color); }
+
+        .main-form-content { padding: 40px 0; }
+        .form-card {
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        .form-card-header {
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 20px;
+            text-align: center;
+        }
+        .form-card-header h3 { margin: 0; font-size: 1.6em; font-weight: 600; }
+        .form-card-body { padding: 30px; }
+
+        .status-message {
+            padding: 15px; border-radius: 6px;
+            margin-bottom: 20px; text-align: left; /* Changed to left */
+            font-size: 0.95em;
+        }
+        .status-message.success { background-color: var(--success-bg); color: var(--success-text); border: 1px solid #B2DFDB; }
+        .status-message.error { background-color: var(--error-bg); color: var(--error-text); border: 1px solid #FFCDD2; }
+        .status-message.info { background-color: var(--info-bg); color: var(--info-text); border: 1px solid #B3E5FC; }
+        .d-none { display: none !important; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-label {
+            display: block; margin-bottom: 8px; font-weight: 500;
+            color: var(--form-label-color); font-size: 0.95em;
+        }
+        .form-control, .form-textarea {
+            display: block; width: 100%; padding: 12px 15px; font-size: 1em;
+            color: var(--text-dark); background-color: var(--white);
+            border: 1px solid var(--border-color); border-radius: 6px;
+            transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+        }
+        .form-textarea { min-height: 120px; resize: vertical; }
+        .form-control:focus, .form-textarea:focus {
+            border-color: var(--primary-color); outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 82, 204, 0.25);
+        }
+        .gdoc-fetch-section { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 25px; }
+        .gdoc-fetch-section .form-group { flex-grow: 1; margin-bottom: 0; }
+        .btn-fetch-gdoc {
+            background-color: var(--secondary-color); color: var(--white);
+            padding: 0 20px; /* Let height be defined by content + padding */
+            height: 48px; /* Explicit height to match input approx */
+            font-weight: 500; border: none; border-radius: 6px; cursor: pointer;
+            white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;
+        }
+        .btn-fetch-gdoc:hover { background-color: var(--primary-color); }
+        .btn-fetch-gdoc:disabled { background-color: #ccc; cursor: not-allowed; }
+        .btn-fetch-gdoc i { margin-right: 8px; }
+
+        .btn-submit-ticket {
+            background-color: var(--cta-color); color: var(--white); padding: 12px 20px;
+            font-size: 1.1em; font-weight: 600; border: none; border-radius: 6px;
+            width: 100%; cursor: pointer; transition: background-color 0.3s ease;
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+        .btn-submit-ticket:hover { background-color: #008DAA; }
+        .btn-submit-ticket i { margin-right: 8px; }
+        .app-footer {
+            text-align: center; padding: 20px 0; margin-top: 30px;
+            font-size: 0.9em; color: var(--text-light); border-top: 1px solid var(--border-color);
+        }
+        hr.section-divider {
+            border: none;
+            height: 1px;
+            background-color: var(--border-color);
+            margin: 30px 0;
+        }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-content">
+            <a href="{{ url_for('home_or_main') }}" class="app-logo-text">
+                <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="CloudKeeper Logo">
+            </a>
+            <nav class="user-actions">
+                <a href="{{ url_for('view_tickets_page') }}" class="btn-nav"><i class="fas fa-list-alt"></i> All Tickets</a>
+                <a href="{{ url_for('form') }}" class="btn-nav"><i class="fas fa-plus-circle"></i> Submit Manually</a>
+                <a href="{{ url_for('user_ticket_view_page') }}" class="btn-nav"><i class="fas fa-user-tag"></i> Tickets by User</a>
+                <a href="{{ url_for('index_counts_page') }}" class="btn-nav"><i class="fas fa-chart-bar"></i> User Counts</a>
+                <a href="{{ url_for('logout') }}" class="btn-logout">Logout <i class="fas fa-sign-out-alt"></i></a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-form-content">
+        <div class="app-container">
+            <div class="form-card">
+                <div class="form-card-header">
+                    <h3>Import Ticket from Google Doc</h3>
+                </div>
+                <div class="form-card-body">
+                    <div id="gdocStatusMessage" class="status-message d-none"></div>
+                    <div id="finalStatusMessage" class="status-message d-none"></div>
+
+                    <p style="font-size: 0.9em; color: var(--text-light); margin-bottom: 15px;">
+                        <i class="fas fa-info-circle"></i> Paste a Google Doc link that has been "Published to the web" (File > Share > Publish to web).
+                        The main content of the document will be fetched.
+                    </p>
+
+                    <div class="gdoc-fetch-section">
+                        <div class="form-group" style="width: 100%;">
+                            <label for="gdocUrl" class="form-label">Google Doc Publish Link</label>
+                            <input type="url" id="gdocUrl" name="gdocUrl" class="form-control" placeholder="https://docs.google.com/document/d/e/.../pubhtml">
+                        </div>
+                        <button type="button" id="fetchGdocContentBtn" class="btn-fetch-gdoc">
+                            <i class="fas fa-cloud-download-alt"></i> Fetch Content
+                        </button>
+                    </div>
+
+                    <hr class="section-divider">
+
+                    <form id="ticketForm">
+                        <div class="form-group">
+                            <label for="title" class="form-label">Ticket Title <span style="color:red;">*</span></label>
+                            <input type="text" id="title" name="title" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="description" class="form-label">Brief Description (Auto-filled or Manual)</label>
+                            <textarea id="description" name="description" class="form-textarea" rows="3" placeholder="A short summary. Can be auto-filled from GDoc."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="remedies" class="form-label">Details / Content from Google Doc <span style="color:red;">*</span></label>
+                            <textarea id="remedies" name="remedies" class="form-textarea" rows="10" placeholder="Content fetched from Google Doc will appear here. This will be saved as the main ticket content." required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="created_by" class="form-label">Submitted By <span style="color:red;">*</span></label>
+                            <input type="text" id="created_by" name="created_by" class="form-control" value="{{ username }}" readonly required>
+                        </div>
+                        <div class="form-group">
+                            <label for="created_at" class="form-label">Date of Occurrence <span style="color:red;">*</span></label>
+                            <input type="datetime-local" id="created_at" name="created_at" class="form-control" required>
+                        </div>
+                        <button type="submit" id="submitTicketBtnGdoc" class="btn-submit-ticket">
+                            <i class="fas fa-paper-plane"></i> Create Ticket from GDoc
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <p>© 2024 CloudKeeper (Team Laadla). All rights reserved.</p>
+    </footer>
+
+    <script>
+        const gdocUrlInput = document.getElementById('gdocUrl');
+        const fetchGdocContentBtn = document.getElementById('fetchGdocContentBtn');
+        const remediesTextarea = document.getElementById('remedies');
+        const descriptionTextarea = document.getElementById('description');
+        const titleInput = document.getElementById('title');
+        const gdocStatusMessageEl = document.getElementById('gdocStatusMessage');
+        const finalStatusMessageEl = document.getElementById('finalStatusMessage');
+        const ticketForm = document.getElementById('ticketForm');
+        const submitTicketBtnGdoc = document.getElementById('submitTicketBtnGdoc');
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('created_at').value = now.toISOString().slice(0, 16);
+        });
+
+        fetchGdocContentBtn.addEventListener('click', async () => {
+            const gdocUrl = gdocUrlInput.value.trim();
+            if (!gdocUrl) {
+                showGdocStatus("Please enter a Google Doc URL.", "error");
+                return;
+            }
+            if (!gdocUrl.includes("/pub") && !gdocUrl.includes("/pubhtml")) {
+                showGdocStatus("Please ensure the link is a 'Published to web' Google Doc URL (usually contains /pub or /pubhtml).", "error");
+                return;
+            }
+
+            showGdocStatus("Fetching content...", "info");
+            const originalButtonText = fetchGdocContentBtn.innerHTML;
+            fetchGdocContentBtn.disabled = true;
+            fetchGdocContentBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching...';
+
+            try {
+                const response = await fetch("{{ url_for('extract_gdoc_content_route') }}", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', },
+                    body: JSON.stringify({ gdoc_url: gdocUrl }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || `HTTP error! status: ${response.status}`);
+                }
+
+                if (data.success && data.content) {
+                    remediesTextarea.value = data.content;
+                    const lines = data.content.split('\\n');
+                    if (lines.length > 0 && !titleInput.value) {
+                        titleInput.value = lines[0].substring(0, 100).trim();
+                    }
+                    if (lines.length > 0 && !descriptionTextarea.value) { // Use first few lines for description
+                        descriptionTextarea.value = lines.slice(0, 3).join('\\n').substring(0, 300).trim();
+                    }
+                    showGdocStatus("Content fetched successfully and populated below.", "success");
+                } else {
+                    throw new Error(data.detail || "Failed to extract content from the document.");
+                }
+            } catch (error) {
+                console.error("Error fetching GDoc content:", error);
+                showGdocStatus(`Error: ${error.message}`, "error");
+                remediesTextarea.value = `Could not fetch content. Please check the URL or try again.\\nError: ${error.message}`;
+            } finally {
+                fetchGdocContentBtn.disabled = false;
+                fetchGdocContentBtn.innerHTML = originalButtonText;
+            }
+        });
+
+        ticketForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            showFinalStatus("Submitting ticket...", "info");
+            const originalButtonText = submitTicketBtnGdoc.innerHTML;
+            submitTicketBtnGdoc.disabled = true;
+            submitTicketBtnGdoc.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+            const formData = new FormData(ticketForm);
+            const dataToSubmit = {};
+            formData.forEach((value, key) => dataToSubmit[key] = value);
+
+            try {
+                const response = await fetch("{{ url_for('submit_ticket') }}", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', },
+                    body: JSON.stringify(dataToSubmit)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                     throw new Error(result.detail || result.error || `HTTP error! status: ${response.status}`);
+                }
+
+                if (result.success !== false) {
+                    showFinalStatus(result.message || "Ticket submitted successfully!", "success");
+                    ticketForm.reset();
+                    remediesTextarea.value = '';
+                    descriptionTextarea.value = '';
+                    titleInput.value = '';
+                    // Re-fetch default date
+                    const now = new Date();
+                    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                    document.getElementById('created_at').value = now.toISOString().slice(0, 16);
+                } else {
+                    throw new Error(result.message || result.detail || "Failed to submit ticket. Server indicated failure.");
+                }
+            } catch (error) {
+                console.error("Error submitting ticket:", error);
+                showFinalStatus(`Error: ${error.message}`, "error");
+            } finally {
+                submitTicketBtnGdoc.disabled = false;
+                submitTicketBtnGdoc.innerHTML = originalButtonText;
+            }
+        });
+
+        function showGdocStatus(message, type) {
+            gdocStatusMessageEl.textContent = message;
+            gdocStatusMessageEl.className = 'status-message';
+            if (type) gdocStatusMessageEl.classList.add(type);
+            gdocStatusMessageEl.classList.remove('d-none');
+        }
+        function showFinalStatus(message, type) {
+            finalStatusMessageEl.textContent = message;
+            finalStatusMessageEl.className = 'status-message';
+            if (type) finalStatusMessageEl.classList.add(type);
+            finalStatusMessageEl.classList.remove('d-none');
+            gdocStatusMessageEl.classList.add('d-none'); // Hide GDoc status when final status shows
+        }
+    </script>
+</body>
+</html>

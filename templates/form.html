@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Submit New Ticket - CloudKeeper</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0052CC;
+            --secondary-color: #0065FF;
+            --cta-color: #00A3BF;
+            --text-dark: #172B4D;
+            --text-light: #505F79;
+            --background-light: #F4F5F7;
+            --white: #FFFFFF;
+            --border-color: #DFE1E6;
+            --success-bg: #E3FCEF;
+            --success-text: #006644;
+            --form-label-color: #42526E;
+            --font-family: 'Inter', 'Arial', sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-family);
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: var(--background-light);
+        }
+        .app-container { max-width: 900px; margin: 0 auto; padding: 0 20px; }
+        .app-header { background-color: var(--white); padding: 15px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .app-logo-text { font-size: 1.5em; font-weight: 600; color: var(--text-dark); text-decoration: none; }
+         .app-logo-text img { height: 35px; vertical-align: middle; margin-right: 8px;}
+        .user-actions a { color: var(--text-dark); font-weight: 500; margin-left: 20px; text-decoration: none; }
+        .user-actions a:hover { color: var(--primary-color); }
+        .user-actions .btn-nav {
+            background-color: var(--white);
+            color: var(--primary-color);
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-weight: 500;
+            border: 1px solid var(--primary-color);
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .user-actions .btn-nav:hover {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+        .user-actions .btn-logout {
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+        .user-actions .btn-logout:hover { background-color: var(--secondary-color); }
+        .main-form-content { padding: 40px 0; }
+        .form-card {
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        .form-card-header {
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 20px;
+            text-align: center;
+        }
+        .form-card-header h3 { margin: 0; font-size: 1.6em; font-weight: 600; }
+        .form-card-body { padding: 30px; }
+        .success-message-placeholder {
+            background-color: var(--success-bg);
+            color: var(--success-text);
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #B2DFDB;
+            text-align: center;
+        }
+        .success-message-placeholder p { margin:0; }
+        .error-message-placeholder {
+            background-color: #ffebee; /* Light red */
+            color: #c62828; /* Darker red */
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #ef9a9a; /* Lighter red border */
+            text-align: center;
+        }
+        .error-message-placeholder p { margin:0; }
+        .form-group { margin-bottom: 20px; }
+        .form-label {
+            display: block; margin-bottom: 8px; font-weight: 500;
+            color: var(--form-label-color); font-size: 0.95em;
+        }
+        .form-control, .form-textarea {
+            display: block; width: 100%; padding: 12px 15px; font-size: 1em;
+            color: var(--text-dark); background-color: var(--white);
+            border: 1px solid var(--border-color); border-radius: 6px;
+            transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+        }
+        .form-textarea { min-height: 100px; resize: vertical; }
+        .form-control:focus, .form-textarea:focus {
+            border-color: var(--primary-color); outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 82, 204, 0.25);
+        }
+        .form-control[type="file"] { padding: 10px 15px; }
+        .form-control[type="file"]::file-selector-button {
+            padding: 0.375rem 0.75rem; margin: -0.375rem -0.75rem; margin-inline-end: 0.75rem;
+            color: var(--primary-color); background-color: #e9ecef; border: 0; border-radius: 0;
+            border-inline-end-width: 1px; border-inline-end-style: solid; border-inline-end-color: inherit;
+            transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+        }
+        .form-control[type="file"]:hover::file-selector-button { background-color: #dde2e6; }
+        .btn-submit-ticket {
+            background-color: var(--cta-color); color: var(--white); padding: 12px 20px;
+            font-size: 1.1em; font-weight: 600; border: none; border-radius: 6px;
+            width: 100%; cursor: pointer; transition: background-color 0.3s ease;
+        }
+        .btn-submit-ticket:hover { background-color: #008DAA; }
+        .app-footer {
+            text-align: center; padding: 20px 0; margin-top: 30px;
+            font-size: 0.9em; color: var(--text-light); border-top: 1px solid var(--border-color);
+        }
+        .ai-button-container { display: flex; align-items: flex-start; }
+        .ai-button-container textarea { flex-grow: 1; }
+        .btn-ask-ai {
+            margin-left: 10px;
+            padding: 10px 15px;
+            white-space: nowrap;
+            height: calc(1.6em * 4 + 24px + 2px); /* Match approx height of 4-row textarea */
+            align-self: stretch; /* Make button stretch to fill height if textarea grows */
+            background-color: var(--secondary-color);
+            color: var(--white);
+            border: none;
+            border-radius: 6px;
+        }
+        .btn-ask-ai:hover { background-color: var(--primary-color); }
+        .btn-add-screenshot {
+            background-color: var(--secondary-color);
+            color: var(--white);
+            border:none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        .btn-add-screenshot:hover { background-color: var(--primary-color); }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-content">
+            <a href="{{ url_for('home_or_main') }}" class="app-logo-text">
+                <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="CloudKeeper Logo">
+            </a>
+            <nav class="user-actions">
+                <a href="{{ url_for('view_tickets_page') }}" class="btn-nav"><i class="fas fa-list-alt"></i> View All Tickets</a>
+                <a href="{{ url_for('user_ticket_view_page') }}" class="btn-nav"><i class="fas fa-user-tag"></i> Tickets by User</a>
+                <a href="{{ url_for('gdoc_importer_page') }}" class="btn-nav"><i class="fab fa-google-drive"></i> Import GDoc</a>
+                <a href="{{ url_for('logout') }}" class="btn-logout">Logout <i class="fas fa-sign-out-alt"></i></a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-form-content">
+        <div class="app-container">
+            <div class="form-card">
+                <div class="form-card-header">
+                    <h3>Submit a New Ticket</h3>
+                </div>
+                <div class="form-card-body">
+                    {% if success_html_content %}
+                        <div class="success-message-placeholder">
+                            <p>{{ success_html_content }}</p>
+                        </div>
+                    {% endif %}
+                    {% if error_message %}
+                        <div class="error-message-placeholder">
+                            <p>{{ error_message }}</p>
+                        </div>
+                    {% endif %}
+
+                    <form action="{{ url_for('submit_ticket') }}" method="post" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="title" class="form-label">Title <span style="color:red;">*</span></label>
+                            <input type="text" id="title" name="title" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description" class="form-label">Description <span style="color:red;">*</span></label>
+                            <div class="ai-button-container">
+                                <textarea id="description" name="description" class="form-textarea" rows="4" required></textarea>
+                                <button type="button" onclick="askAI('description')" class="btn-ask-ai"><i class="fas fa-magic"></i> Ask AI</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="remedies" class="form-label">Steps to Reproduce / Remedies Tried</label>
+                            <div class="ai-button-container">
+                                <textarea id="remedies" name="remedies" class="form-textarea" rows="4"></textarea> 
+                                <button type="button" onclick="askAI('remedies')" class="btn-ask-ai"><i class="fas fa-magic"></i> Ask AI</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Upload Remedy Document (PDF or Word)</label>
+                            <input type="file" name="remedy_doc" id="remedy_doc" accept=".pdf,.doc,.docx,.txt" class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Screenshots (Optional)</label>
+                            <div id="screenshot-container">
+                                <input type="file" name="screenshot" class="form-control mb-2" multiple>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="created_by" class="form-label">Submitted By <span style="color:red;">*</span></label>
+                            <input type="text" id="created_by" name="created_by" class="form-control" value="{{ username }}" readonly required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="created_at" class="form-label">Date of Occurrence <span style="color:red;">*</span></label>
+                            <input type="datetime-local" id="created_at" name="created_at" class="form-control" required>
+                        </div>
+
+                        <button type="submit" class="btn-submit-ticket"><i class="fas fa-paper-plane"></i> Submit Ticket</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <p>© 2024 CloudKeeper (Team Laadla). All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Pre-fill date and time
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); // Adjust for local timezone
+            const localIsoTime = now.toISOString().slice(0, 16);
+            document.getElementById('created_at').value = localIsoTime;
+
+            // Set min attribute for date to prevent future dates if not desired
+            // document.getElementById('created_at').max = localIsoTime;
+        });
+
+
+        async function askAI(fieldType) {
+            const title = document.getElementById('title').value;
+            let currentText;
+            let targetTextarea;
+
+            if (fieldType === 'description') {
+                currentText = document.getElementById('description').value;
+                targetTextarea = document.getElementById('description');
+            } else if (fieldType === 'remedies') {
+                currentText = document.getElementById('remedies').value;
+                targetTextarea = document.getElementById('remedies');
+            } else {
+                return;
+            }
+            
+            const aiButton = event.target.closest('button'); // Get the button that was clicked
+            const originalButtonText = aiButton.innerHTML;
+            aiButton.disabled = true;
+            aiButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Thinking...';
+
+            // Send either title (if currentText is empty) or currentText for rewrite
+            const payload = {};
+            if (currentText.trim()) {
+                payload.description = currentText; // Send existing text for rewrite
+            } else if (title.trim()) {
+                payload.title = title; // Send title to generate new content
+            } else {
+                 alert("Please enter a Title or some text in the field before asking AI.");
+                 aiButton.disabled = false;
+                 aiButton.innerHTML = originalButtonText;
+                 return;
+            }
+
+            try {
+                const res = await fetch("{{ url_for('ai_description') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if(data.generated) {
+                        targetTextarea.value = data.generated;
+                    } else if (data.error) {
+                        alert("AI Error: " + data.error);
+                    }
+                } else {
+                    const errorData = await res.json().catch(()=> ({error: "Failed to get AI suggestion. Server error."}));
+                    alert("Failed to generate content: " + (errorData.error || res.statusText) );
+                }
+            } catch (error) {
+                console.error("Error calling AI:", error);
+                alert("An error occurred while contacting the AI service.");
+            } finally {
+                aiButton.disabled = false;
+                aiButton.innerHTML = originalButtonText;
+            }
+        }
+    </script>
+</body>
+</html>

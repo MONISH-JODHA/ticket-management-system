@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tickets by User - CloudKeeper Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0052CC;
+            --secondary-color: #0065FF;
+            --cta-color: #00A3BF;
+            --text-dark: #172B4D;
+            --text-light: #505F79;
+            --background-light: #F4F5F7;
+            --white: #FFFFFF;
+            --border-color: #DFE1E6;
+            --success-bg: #E3FCEF;
+            --success-text: #006644;
+            --info-bg: #DEEBFF;
+            --info-text: #0052CC;
+            --warning-bg: #FFFAE6;
+            --warning-text: #FF8B00;
+            --font-family: 'Inter', 'Arial', sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-family);
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: var(--background-light);
+        }
+        .app-container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .app-header { background-color: var(--white); padding: 15px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .header-content {
+            display: flex; justify-content: space-between; align-items: center;
+            max-width: 1200px; margin: 0 auto; padding: 0 20px;
+        }
+        .app-logo-text { font-size: 1.5em; font-weight: 600; color: var(--text-dark); text-decoration: none; }
+        .app-logo-text img { height: 35px; vertical-align: middle; margin-right: 8px; }
+        .user-actions a {
+            color: var(--text-dark); font-weight: 500; margin-left: 15px;
+            text-decoration: none; padding: 8px 12px; border-radius: 6px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .user-actions a:hover { background-color: var(--background-light); color: var(--primary-color); }
+        .user-actions .btn-nav { border: 1px solid var(--border-color); }
+        .user-actions .btn-nav:hover { border-color: var(--primary-color); }
+        .user-actions .btn-logout { background-color: var(--primary-color); color: var(--white); }
+        .user-actions .btn-logout:hover { background-color: var(--secondary-color); border-color: var(--secondary-color); }
+
+        .main-content { padding: 30px 0; }
+        .page-title { font-size: 2em; font-weight: 600; color: var(--text-dark); margin-bottom: 30px; }
+        .dashboard-layout { display: flex; gap: 30px; }
+        .user-sidebar {
+            flex: 0 0 280px; background-color: var(--white); padding: 20px;
+            border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            height: fit-content; max-height: 75vh; overflow-y: auto;
+        }
+        .sidebar-title {
+            font-size: 1.2em; font-weight: 600; color: var(--text-dark);
+            margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);
+        }
+        #userList { list-style: none; padding: 0; }
+        .user-item {
+            padding: 12px 15px; margin-bottom: 5px; border-radius: 6px;
+            cursor: pointer; transition: background-color 0.2s ease, color 0.2s ease;
+            color: var(--text-light); font-weight: 500;
+        }
+        .user-item:hover { background-color: var(--primary-color); color: var(--white); }
+        .user-item.active { background-color: var(--primary-color); color: var(--white); font-weight: 600; }
+
+        .ticket-panel { flex: 1; }
+        .ticket-table-wrapper, .ticket-details-card {
+            background-color: var(--white); padding: 20px;
+            border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .ticket-table-wrapper { margin-bottom: 30px; }
+        .panel-subtitle { font-size: 1.3em; font-weight: 600; margin-bottom: 20px; color: var(--text-dark); }
+        .styled-table { width: 100%; border-collapse: collapse; }
+        .styled-table th, .styled-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .styled-table thead th {
+            background-color: var(--success-bg); color: var(--success-text);
+            font-weight: 600; font-size: 0.9em; text-transform: uppercase;
+            letter-spacing: 0.5px; border-bottom: 2px solid var(--primary-color);
+        }
+        .styled-table tbody tr { cursor: pointer; }
+        .styled-table tbody tr:hover { background-color: #f9fafb; }
+        .styled-table tbody tr.active-ticket-row { background-color: var(--info-bg); font-weight: 500; }
+        .styled-table tbody tr:last-child td { border-bottom: none; }
+
+        .d-none { display: none !important; }
+        .ticket-details-card { border: 1px solid var(--border-color); border-radius: 8px; }
+        .ticket-details-card .card-header {
+            background-color: var(--info-bg); color: var(--info-text);
+            padding: 15px 20px; border-bottom: 1px solid var(--border-color);
+            border-top-left-radius: inherit; border-top-right-radius: inherit;
+        }
+        .ticket-details-card .card-header h5 { margin: 0; font-size: 1.3em; font-weight: 600; }
+        .ticket-details-card .card-body { padding: 20px; }
+        .detail-item { display: flex; margin-bottom: 12px; align-items: flex-start; }
+        .detail-item strong {
+            color: var(--text-dark); min-width: 130px;
+            font-weight: 600; padding-right: 10px; line-height: 1.6;
+        }
+        .detail-item span, .detail-item input, .detail-item textarea, .detail-item select {
+            flex-grow: 1; color: var(--text-light);
+            word-break: break-word; white-space: pre-wrap;
+        }
+        .form-control-display {
+            background-color: transparent; border: none; padding: 0;
+            font-size: inherit; color: var(--text-light); width: 100%;
+            cursor: default; line-height: 1.6;
+        }
+        .form-control-editable {
+             display: block; width: 100%; padding: 8px 12px; font-size: 1em;
+            color: var(--text-dark); background-color: var(--white);
+            border: 1px solid var(--border-color); border-radius: 6px;
+        }
+        .form-control-editable:focus {
+            border-color: var(--primary-color); outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 82, 204, 0.25);
+        }
+
+        #screenshotContainerUser, #remedyDocLinkContainerUsers { margin-top: 5px; }
+        .screenshot-img, .remedy-doc-link {
+            border: 1px solid var(--border-color); border-radius: 4px;
+            object-fit: cover; margin: 5px;
+        }
+        .screenshot-img { max-width: 180px; max-height: 120px; cursor: pointer; }
+        .remedy-doc-link {
+            display: inline-block; padding: 8px 12px;
+            background-color: var(--background-light);
+            color: var(--primary-color); text-decoration: none;
+            font-size: 0.9em;
+        }
+        .remedy-doc-link:hover { background-color: var(--border-color); }
+        .text-muted { color: var(--text-light); opacity: 0.8; font-style: italic;}
+
+        .btn-action {
+            padding: 8px 15px; border-radius: 6px; font-weight: 500;
+            border: none; cursor: pointer; margin-left: 10px;
+            transition: background-color 0.2s ease;
+        }
+        .btn-edit { background-color: var(--warning-bg); color: var(--warning-text); border: 1px solid var(--warning-text); }
+        .btn-edit:hover { background-color: var(--warning-text); color: var(--white); }
+        .btn-save { background-color: var(--success-bg); color: var(--success-text); border: 1px solid var(--success-text); }
+        .btn-save:hover { background-color: var(--success-text); color: var(--white); }
+        .btn-cancel { background-color: #f8f9fa; color: var(--text-light); border: 1px solid var(--border-color); }
+        .btn-cancel:hover { background-color: var(--border-color); }
+
+        .app-footer {
+            text-align: center; padding: 20px 0; margin-top: 30px;
+            font-size: 0.9em; color: var(--text-light); border-top: 1px solid var(--border-color);
+        }
+        #statusMessagesUsers { margin-bottom: 15px; }
+        .alert { padding: .75rem 1.25rem; margin-bottom: 1rem; border: 1px solid transparent; border-radius: .25rem; }
+        .alert-danger { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
+        .alert-success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
+        .alert-info { color: #0c5460; background-color: #d1ecf1; border-color: #bee5eb; }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-content">
+            <a href="{{ url_for('home_or_main') }}" class="app-logo-text">
+                <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="CloudKeeper Logo">
+            </a>
+            <nav class="user-actions">
+                <a href="{{ url_for('chatbot_page') }}" class="btn-nav"><i class="fas fa-user-tag"></i>Chat Assisstance</a>
+
+                <a href="{{ url_for('view_tickets_page') }}" class="btn-nav"><i class="fas fa-list-alt"></i> All Tickets</a>
+                <a href="{{ url_for('form') }}" class="btn-nav"><i class="fas fa-plus-circle"></i> New Ticket</a>
+                <a href="{{ url_for('gdoc_importer_page') }}" class="btn-nav"><i class="fab fa-google-drive"></i> Import GDoc</a>
+                <a href="{{ url_for('index_counts_page') }}" class="btn-nav"><i class="fas fa-chart-bar"></i> User Counts</a>
+                <a href="{{ url_for('logout') }}" class="btn-logout">Logout <i class="fas fa-sign-out-alt"></i></a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="app-container">
+            <h1 class="page-title">Tickets by User</h1>
+            <div id="statusMessagesUsers"></div>
+
+            <div class="dashboard-layout">
+                <aside class="user-sidebar">
+                    <h3 class="sidebar-title">Users</h3>
+                    <div id="userList">
+                    </div>
+                </aside>
+
+                <section class="ticket-panel">
+                    <div class="ticket-table-wrapper">
+                        <h4 id="selectedUserTitle" class="panel-subtitle">Select a user to view their tickets</h4>
+                        <table class="styled-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                    <th>Date Submitted</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userTicketTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="ticketDetailsUser" class="ticket-details-card d-none mt-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 id="detailTicketIdHeaderUser">Ticket #<span id="detailTicketIdUser"></span></h5>
+                            <div>
+                                <button id="editBtnUsers" onclick="enableEditModeUsers()" class="btn-action btn-edit"><i class="fas fa-edit"></i> Edit</button>
+                                <button id="saveBtnUsers" onclick="saveTicketChangesUsers()" class="btn-action btn-save d-none"><i class="fas fa-save"></i> Save</button>
+                                <button id="cancelBtnUsers" onclick="cancelEditModeUsers()" class="btn-action btn-cancel d-none"><i class="fas fa-times"></i> Cancel</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <input type="hidden" id="currentTicketIdUser">
+                            <div class="detail-item">
+                                <strong>Title:</strong>
+                                <input type="text" id="detailTitleUser" class="form-control-display" readonly>
+                            </div>
+                            <div class="detail-item">
+                                <strong>Description:</strong>
+                                <textarea id="detailDescriptionUser" class="form-control-display" rows="4" readonly></textarea>
+                            </div>
+                            <div class="detail-item">
+                                <strong>Remedies / Steps:</strong>
+                                <textarea id="detailRemediesUser" class="form-control-display" rows="3" readonly></textarea>
+                            </div>
+                            <div class="detail-item">
+                                <strong>Status:</strong>
+                                <select id="detailStatusUser" class="form-control-display" disabled>
+                                    <option value="Open">Open</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Resolved">Resolved</option>
+                                    <option value="Closed">Closed</option>
+                                    <option value="Pending User">Pending User</option>
+                                </select>
+                            </div>
+                            <div class="detail-item">
+                                <strong>Submitted By:</strong>
+                                <span id="detailCreatedByUser" class="form-control-display"></span>
+                            </div>
+                            <div class="detail-item">
+                                <strong>Date Submitted:</strong>
+                                <span id="detailCreatedAtUser" class="form-control-display"></span>
+                            </div>
+                            <div id="remedyDocContainerUsers" class="detail-item">
+                                <strong>Remedy Document:</strong>
+                                <span id="remedyDocLinkContainerUsers">No document attached.</span>
+                            </div>
+                            <div class="detail-item" style="flex-direction: column; align-items: flex-start;">
+                                <strong style="min-width:auto; margin-bottom: 5px;">Screenshots:</strong>
+                                <div id="screenshotContainerUser" class="d-flex flex-wrap">
+                                    No screenshots attached.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <p>© 2024 CloudKeeper (Team Laadla). All rights reserved.</p>
+    </footer>
+
+  <script>
+    const userListEl = document.getElementById('userList');
+    const ticketTableBodyEl = document.getElementById('userTicketTableBody');
+    const detailSectionEl = document.getElementById('ticketDetailsUser');
+    const selectedUserTitleEl = document.getElementById('selectedUserTitle');
+    let currentSelectedUserItem = null;
+    let currentSelectedTicketRow = null;
+    let originalTicketDataForUserPage = {};
+
+    async function loadUsers() {
+      try {
+        const res = await fetch("{{ url_for('get_users_list') }}");
+        if (!res.ok) throw new Error(`HTTP error ${res.status} while fetching users`);
+        const users = await res.json();
+        userListEl.innerHTML = '';
+        if (users.length === 0) {
+            userListEl.innerHTML = '<p class="text-muted p-2">No users found.</p>';
+            return;
+        }
+        users.forEach(user => {
+          const div = document.createElement('div');
+          div.textContent = user;
+          div.classList.add('user-item');
+          div.onclick = () => {
+            if (currentSelectedUserItem) currentSelectedUserItem.classList.remove('active');
+            div.classList.add('active');
+            currentSelectedUserItem = div;
+            loadTicketsForUser(user);
+          };
+          userListEl.appendChild(div);
+        });
+      } catch (error) {
+        console.error("Failed to load users:", error);
+        displayStatusMessageUsers(`Error loading users: ${error.message}`, 'danger');
+      }
+    }
+
+    async function loadTicketsForUser(username) {
+      try {
+        selectedUserTitleEl.textContent = `Tickets for: ${username}`;
+        const fetchUrl = `{{ url_for('get_tickets_for_user_api', username='__USERNAME__') }}`.replace('__USERNAME__', encodeURIComponent(username));
+        const res = await fetch(fetchUrl);
+        if (!res.ok) throw new Error(`HTTP error ${res.status} while fetching tickets for ${username}`);
+        const tickets = await res.json();
+        ticketTableBodyEl.innerHTML = '';
+        detailSectionEl.classList.add('d-none');
+        currentSelectedTicketRow = null;
+        if (tickets.length === 0) {
+            ticketTableBodyEl.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">No tickets found for this user.</td></tr>';
+            return;
+        }
+        tickets.forEach(ticket => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${ticket.id}</td>
+            <td>${ticket.title || 'N/A'}</td>
+            <td>${ticket.created_at ? new Date(ticket.created_at).toLocaleDateString() : 'N/A'}</td>
+            <td>${ticket.status || 'N/A'}</td>
+          `;
+          row.onclick = () => {
+            if (currentSelectedTicketRow) currentSelectedTicketRow.classList.remove('active-ticket-row');
+            row.classList.add('active-ticket-row');
+            currentSelectedTicketRow = row;
+            showDetailsForUserPage(ticket.id);
+          };
+          ticketTableBodyEl.appendChild(row);
+        });
+      } catch (error) {
+        console.error(`Failed to load tickets for ${username}:`, error);
+        displayStatusMessageUsers(`Error loading tickets for ${username}: ${error.message}`, 'danger');
+        selectedUserTitleEl.textContent = `Error loading tickets`;
+      }
+    }
+
+    async function showDetailsForUserPage(id) {
+      try {
+        const fetchUrl = `{{ url_for('get_ticket', ticket_id=0) }}`.replace('0', id);
+        const res = await fetch(fetchUrl);
+        if (!res.ok) throw new Error(`HTTP error ${res.status} while fetching ticket ${id}`);
+        const ticket = await res.json();
+        if (!ticket || ticket.error) {
+            displayStatusMessageUsers(ticket.error || 'Error: Ticket details not found.', 'danger');
+            detailSectionEl.classList.add('d-none');
+            return;
+        }
+        originalTicketDataForUserPage = {...ticket};
+        document.getElementById('currentTicketIdUser').value = ticket.id;
+        document.getElementById('detailTicketIdUser').textContent = ticket.id;
+        document.getElementById('detailTitleUser').value = ticket.title || '';
+        document.getElementById('detailDescriptionUser').value = ticket.description || '';
+        document.getElementById('detailRemediesUser').value = ticket.remedies || '';
+        document.getElementById('detailStatusUser').value = ticket.status || 'Open';
+        document.getElementById('detailCreatedByUser').textContent = ticket.created_by || 'N/A';
+        document.getElementById('detailCreatedAtUser').textContent = ticket.created_at ? new Date(ticket.created_at).toLocaleString() : 'N/A';
+
+        const screenshotContainer = document.getElementById('screenshotContainerUser');
+        screenshotContainer.innerHTML = '';
+        if (ticket.file_path && Array.isArray(ticket.file_path) && ticket.file_path.length > 0 && ticket.file_path[0] !== "") {
+          ticket.file_path.forEach(path => {
+            if(path && path.trim()){
+              const img = document.createElement('img');
+              img.src = `/${path.trim()}`;
+              img.className = 'screenshot-img';
+              img.alt = 'Screenshot';
+              img.onerror = () => { img.style.display='none'; console.warn(`Failed to load image: /${path.trim()}`); };
+              screenshotContainer.appendChild(img);
+            }
+          });
+        }
+        if(screenshotContainer.childElementCount === 0) {
+            screenshotContainer.innerHTML = '<span class="text-muted" style="font-size: 0.9em;">No screenshots attached.</span>';
+        }
+
+        const remedyDocLinkContainer = document.getElementById('remedyDocLinkContainerUsers');
+        if (ticket.remedy_doc_path && ticket.remedy_doc_path.trim()) {
+            const remedyLink = document.createElement('a');
+            remedyLink.href = `/${ticket.remedy_doc_path.trim()}`;
+            remedyLink.textContent = ticket.remedy_doc_path.split('/').pop();
+            remedyLink.target = "_blank";
+            remedyLink.className = "remedy-doc-link";
+            remedyDocLinkContainer.innerHTML = '';
+            remedyDocLinkContainer.appendChild(remedyLink);
+        } else {
+            remedyDocLinkContainer.innerHTML = '<span class="text-muted" style="font-size: 0.9em;">No remedy document attached.</span>';
+        }
+        setEditModeUsers(false);
+        detailSectionEl.classList.remove('d-none');
+      } catch (error) {
+          console.error('Failed to show ticket details:', error);
+          displayStatusMessageUsers(`Error loading ticket details: ${error.message}`, 'danger');
+          detailSectionEl.classList.add('d-none');
+      }
+    }
+
+    function setEditModeUsers(isEditing) {
+        const fieldsToToggle = ['detailTitleUser', 'detailDescriptionUser', 'detailRemediesUser'];
+        fieldsToToggle.forEach(id => {
+            const el = document.getElementById(id);
+            el.readOnly = !isEditing;
+            el.classList.toggle('form-control-display', !isEditing);
+            el.classList.toggle('form-control-editable', isEditing);
+        });
+        const statusSelect = document.getElementById('detailStatusUser');
+        statusSelect.disabled = !isEditing;
+        statusSelect.classList.toggle('form-control-display', !isEditing);
+        statusSelect.classList.toggle('form-control-editable', isEditing);
+
+        document.getElementById('editBtnUsers').classList.toggle('d-none', isEditing);
+        document.getElementById('saveBtnUsers').classList.toggle('d-none', !isEditing);
+        document.getElementById('cancelBtnUsers').classList.toggle('d-none', !isEditing);
+    }
+
+    function enableEditModeUsers() { setEditModeUsers(true); }
+
+    function cancelEditModeUsers() {
+        document.getElementById('detailTitleUser').value = originalTicketDataForUserPage.title || '';
+        document.getElementById('detailDescriptionUser').value = originalTicketDataForUserPage.description || '';
+        document.getElementById('detailRemediesUser').value = originalTicketDataForUserPage.remedies || '';
+        document.getElementById('detailStatusUser').value = originalTicketDataForUserPage.status || 'Open';
+        setEditModeUsers(false);
+    }
+
+    async function saveTicketChangesUsers() {
+      const id = document.getElementById('currentTicketIdUser').value;
+      const updatedData = {
+        title: document.getElementById('detailTitleUser').value,
+        description: document.getElementById('detailDescriptionUser').value,
+        remedies: document.getElementById('detailRemediesUser').value,
+        status: document.getElementById('detailStatusUser').value
+      };
+      try {
+        const fetchUrl = `{{ url_for('update_ticket', ticket_id=0) }}`.replace('0',id);
+        const res = await fetch(fetchUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedData)
+        });
+        if (res.ok) {
+          const result = await res.json();
+          displayStatusMessageUsers(result.message || 'Ticket updated successfully!', 'success');
+          setEditModeUsers(false);
+          const activeUserItem = document.querySelector('.user-item.active');
+          if (activeUserItem) {
+             loadTicketsForUser(activeUserItem.textContent);
+          }
+          showDetailsForUserPage(id);
+        } else {
+          const errorResult = await res.json().catch(() => ({error: 'Failed to update ticket.'}));
+          displayStatusMessageUsers(`Error: ${errorResult.error || 'Failed to update ticket.'}`, 'danger');
+        }
+      } catch (error) {
+        console.error('Error saving ticket:', error);
+        displayStatusMessageUsers(`Error saving ticket: ${error.message}`, 'danger');
+      }
+    }
+
+    function displayStatusMessageUsers(message, type = 'info') {
+        const statusDiv = document.getElementById('statusMessagesUsers');
+        statusDiv.innerHTML = ''; // Clear previous messages
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type === 'danger' ? 'danger' : (type === 'success' ? 'success' : 'info')}`;
+        alertDiv.setAttribute('role', 'alert');
+        alertDiv.textContent = message;
+        statusDiv.appendChild(alertDiv);
+        setTimeout(() => { statusDiv.innerHTML = ''; }, 5000);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadUsers();
+    });
+  </script>
+</body>
+</html>
