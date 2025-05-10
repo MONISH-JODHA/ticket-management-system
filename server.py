@@ -113,7 +113,7 @@ Team Support
     try:
         with smtplib.SMTP('smtp.gmail.com', 587) as server:
             server.starttls()
-            server.login('monish.jodha@cloudkeeper.com', PASSWORD)
+            server.login('monish.jodha@cloudkeeper.com', Password)
             server.sendmail(msg['From'], [msg['To']], msg.as_string())
             print("OTP email sent successfully!")
     except Exception as e:
@@ -297,49 +297,72 @@ def get_tickets():
             tickets.append(ticket_dict)
         return jsonify(tickets)
 
+
 @app.route('/tickets/<int:ticket_id>', methods=['GET'])
 @login_required
-def get_ticket(ticket_id):
+def get_ticket(ticket_id): # This route is used by both view.html and users.html to show details
     with sqlite3.connect(DB_PATH) as conn:
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
+        # Ensure all necessary fields, including created_by and status, are selected
         cur.execute("SELECT id, title, description, remedies, file_path, remedy_doc_path, created_by, created_at, status FROM tickets WHERE id=?", (ticket_id,))
         row = cur.fetchone()
         if row:
             ticket_dict = dict(row)
+            # Process file_path (screenshots)
             if 'file_path' in ticket_dict and ticket_dict['file_path'] is not None:
                 if isinstance(ticket_dict['file_path'], str) and ticket_dict['file_path'].strip():
                     ticket_dict['file_path'] = [path.strip() for path in ticket_dict['file_path'].split(';') if path.strip()]
-                elif not isinstance(ticket_dict['file_path'], list):
+                elif not isinstance(ticket_dict['file_path'], list): # Should not happen if DB stores string
                      ticket_dict['file_path'] = []
             else:
                 ticket_dict['file_path'] = []
+            # remedy_doc_path is already a single string or None
             return jsonify(ticket_dict)
         return jsonify({"error": "Ticket not found"}), 404
 
 @app.route('/tickets/<int:ticket_id>', methods=['PUT'])
 @login_required
 def update_ticket(ticket_id):
+    current_user_from_session = session.get('username')
     data = request.get_json()
+
     title = data.get('title')
     description = data.get('description')
     remedies = data.get('remedies')
-    status = data.get('status', 'Open') # Default to Open if not provided
-    created_by = data.get('created_by') # Get these but don't update them by default
-    created_at = data.get('created_at')
+    status = data.get('status', 'Open')
 
-    if not title:
+    if not title: # Basic validation
         return jsonify({"error": "Title is required"}), 400
 
     with sqlite3.connect(DB_PATH) as conn:
+        conn.row_factory = sqlite3.Row # To easily access 'created_by'
         cur = conn.cursor()
+
+        # First, fetch the ticket to check ownership
+        cur.execute("SELECT created_by FROM tickets WHERE id = ?", (ticket_id,))
+        ticket_to_edit = cur.fetchone()
+
+        if not ticket_to_edit:
+            return jsonify({"error": "Ticket not found"}), 404
+
+        if ticket_to_edit['created_by'] != current_user_from_session:
+            app.logger.warning(f"Forbidden attempt to edit ticket {ticket_id} by user {current_user_from_session}. Ticket created by {ticket_to_edit['created_by']}.")
+            return jsonify({"error": "Forbidden: You can only edit your own tickets."}), 403
+
+        # If ownership check passes, proceed with update
         cur.execute('''UPDATE tickets SET title = ?, description = ?, remedies = ?, status = ?
                        WHERE id = ?''',
                      (title, description, remedies, status, ticket_id))
         conn.commit()
+
         if cur.rowcount == 0:
+            # This case should ideally be caught by the "Ticket not found" above,
+            # but it's a safeguard if the ticket was deleted between fetch and update.
             return jsonify({'error': 'Ticket not found or no changes made'}), 404
+            
     return jsonify({'message': 'Ticket updated successfully'})
+
 
 @app.route('/uploads/<path:filename>', methods=['GET'])
 @login_required

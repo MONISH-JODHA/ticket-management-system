@@ -270,6 +270,7 @@
     </footer>
 
   <script>
+    const loggedInUserForUserPage = "{{ username }}"; // Get username passed from Flask
     const userListEl = document.getElementById('userList');
     const ticketTableBodyEl = document.getElementById('userTicketTableBody');
     const detailSectionEl = document.getElementById('ticketDetailsUser');
@@ -344,64 +345,78 @@
     }
 
     async function showDetailsForUserPage(id) {
-      try {
-        const fetchUrl = `{{ url_for('get_ticket', ticket_id=0) }}`.replace('0', id);
-        const res = await fetch(fetchUrl);
-        if (!res.ok) throw new Error(`HTTP error ${res.status} while fetching ticket ${id}`);
-        const ticket = await res.json();
-        if (!ticket || ticket.error) {
-            displayStatusMessageUsers(ticket.error || 'Error: Ticket details not found.', 'danger');
+        try {
+          const fetchUrl = `{{ url_for('get_ticket', ticket_id=0) }}`.replace('0', id);
+          const res = await fetch(fetchUrl);
+          if (!res.ok) throw new Error(`HTTP error ${res.status} while fetching ticket ${id}`);
+          const ticket = await res.json();
+          if (!ticket || ticket.error) {
+              displayStatusMessageUsers(ticket.error || 'Error: Ticket details not found.', 'danger');
+              detailSectionEl.classList.add('d-none');
+              return;
+          }
+          originalTicketDataForUserPage = {...ticket};
+          document.getElementById('currentTicketIdUser').value = ticket.id;
+          document.getElementById('detailTicketIdUser').textContent = ticket.id;
+          document.getElementById('detailTitleUser').value = ticket.title || '';
+          document.getElementById('detailDescriptionUser').value = ticket.description || '';
+          document.getElementById('detailRemediesUser').value = ticket.remedies || '';
+          document.getElementById('detailStatusUser').value = ticket.status || 'Open';
+          document.getElementById('detailCreatedByUser').textContent = ticket.created_by || 'N/A';
+          document.getElementById('detailCreatedAtUser').textContent = ticket.created_at ? new Date(ticket.created_at).toLocaleString() : 'N/A';
+      
+          const screenshotContainer = document.getElementById('screenshotContainerUser');
+          screenshotContainer.innerHTML = '';
+          if (ticket.file_path && Array.isArray(ticket.file_path) && ticket.file_path.length > 0 && ticket.file_path[0] !== "") {
+            ticket.file_path.forEach(path => {
+              if(path && path.trim()){
+                const img = document.createElement('img');
+                img.src = `/${path.trim()}`;
+                img.className = 'screenshot-img';
+                img.alt = 'Screenshot';
+                img.onerror = () => { img.style.display='none'; console.warn(`Failed to load image: /${path.trim()}`); };
+                screenshotContainer.appendChild(img);
+              }
+            });
+          }
+          if(screenshotContainer.childElementCount === 0) {
+              screenshotContainer.innerHTML = '<span class="text-muted" style="font-size: 0.9em;">No screenshots attached.</span>';
+          }
+      
+          const remedyDocLinkContainer = document.getElementById('remedyDocLinkContainerUsers');
+          if (ticket.remedy_doc_path && ticket.remedy_doc_path.trim()) {
+              const remedyLink = document.createElement('a');
+              remedyLink.href = `/${ticket.remedy_doc_path.trim()}`;
+              remedyLink.textContent = ticket.remedy_doc_path.split('/').pop();
+              remedyLink.target = "_blank";
+              remedyLink.className = "remedy-doc-link";
+              remedyDocLinkContainer.innerHTML = '';
+              remedyDocLinkContainer.appendChild(remedyLink);
+          } else {
+              remedyDocLinkContainer.innerHTML = '<span class="text-muted" style="font-size: 0.9em;">No remedy document attached.</span>';
+          }
+      
+          // Conditionally show/hide Edit button
+          const editButton = document.getElementById('editBtnUsers');
+          if (ticket.created_by === loggedInUserForUserPage) {
+              editButton.classList.remove('d-none');
+          } else {
+              editButton.classList.add('d-none');
+          }
+          // Ensure save/cancel are hidden initially
+          document.getElementById('saveBtnUsers').classList.add('d-none');
+          document.getElementById('cancelBtnUsers').classList.add('d-none');
+      
+          setEditModeUsers(false);
+          detailSectionEl.classList.remove('d-none');
+        } catch (error) {
+            console.error('Failed to show ticket details:', error);
+            displayStatusMessageUsers(`Error loading ticket details: ${error.message}`, 'danger');
             detailSectionEl.classList.add('d-none');
-            return;
         }
-        originalTicketDataForUserPage = {...ticket};
-        document.getElementById('currentTicketIdUser').value = ticket.id;
-        document.getElementById('detailTicketIdUser').textContent = ticket.id;
-        document.getElementById('detailTitleUser').value = ticket.title || '';
-        document.getElementById('detailDescriptionUser').value = ticket.description || '';
-        document.getElementById('detailRemediesUser').value = ticket.remedies || '';
-        document.getElementById('detailStatusUser').value = ticket.status || 'Open';
-        document.getElementById('detailCreatedByUser').textContent = ticket.created_by || 'N/A';
-        document.getElementById('detailCreatedAtUser').textContent = ticket.created_at ? new Date(ticket.created_at).toLocaleString() : 'N/A';
-
-        const screenshotContainer = document.getElementById('screenshotContainerUser');
-        screenshotContainer.innerHTML = '';
-        if (ticket.file_path && Array.isArray(ticket.file_path) && ticket.file_path.length > 0 && ticket.file_path[0] !== "") {
-          ticket.file_path.forEach(path => {
-            if(path && path.trim()){
-              const img = document.createElement('img');
-              img.src = `/${path.trim()}`;
-              img.className = 'screenshot-img';
-              img.alt = 'Screenshot';
-              img.onerror = () => { img.style.display='none'; console.warn(`Failed to load image: /${path.trim()}`); };
-              screenshotContainer.appendChild(img);
-            }
-          });
-        }
-        if(screenshotContainer.childElementCount === 0) {
-            screenshotContainer.innerHTML = '<span class="text-muted" style="font-size: 0.9em;">No screenshots attached.</span>';
-        }
-
-        const remedyDocLinkContainer = document.getElementById('remedyDocLinkContainerUsers');
-        if (ticket.remedy_doc_path && ticket.remedy_doc_path.trim()) {
-            const remedyLink = document.createElement('a');
-            remedyLink.href = `/${ticket.remedy_doc_path.trim()}`;
-            remedyLink.textContent = ticket.remedy_doc_path.split('/').pop();
-            remedyLink.target = "_blank";
-            remedyLink.className = "remedy-doc-link";
-            remedyDocLinkContainer.innerHTML = '';
-            remedyDocLinkContainer.appendChild(remedyLink);
-        } else {
-            remedyDocLinkContainer.innerHTML = '<span class="text-muted" style="font-size: 0.9em;">No remedy document attached.</span>';
-        }
-        setEditModeUsers(false);
-        detailSectionEl.classList.remove('d-none');
-      } catch (error) {
-          console.error('Failed to show ticket details:', error);
-          displayStatusMessageUsers(`Error loading ticket details: ${error.message}`, 'danger');
-          detailSectionEl.classList.add('d-none');
       }
-    }
+      
+      
 
     function setEditModeUsers(isEditing) {
         const fieldsToToggle = ['detailTitleUser', 'detailDescriptionUser', 'detailRemediesUser'];

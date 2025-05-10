@@ -151,6 +151,36 @@
             text-align: center; padding: 20px 0; margin-top: 30px;
             font-size: 0.9em; color: var(--text-light); border-top: 1px solid var(--border-color);
         }
+        #statusMessages, #statusMessagesUsers { /* Give the container some space */
+            margin-bottom: 20px;
+        }
+        
+        .alert {
+            padding: 1rem;
+            margin-bottom: 1rem; /* If multiple alerts could appear, though your JS clears it */
+            border: 1px solid transparent;
+            border-radius: .25rem; /* Bootstrap-like */
+            text-align: center; /* Center the text */
+            font-size: 0.95em;
+        }
+        
+        .alert-danger { /* This is the key style for red alerts */
+            color: #721c24; /* Dark red text (Bootstrap's var(--bs-alert-color)) */
+            background-color: #f8d7da; /* Light red background (Bootstrap's var(--bs-alert-bg)) */
+            border-color: #f5c6cb; /* Slightly darker red border (Bootstrap's var(--bs-alert-border-color)) */
+        }
+        
+        .alert-success {
+            color: #0f5132;
+            background-color: #d1e7dd;
+            border-color: #badbcc;
+        }
+        
+        .alert-info {
+            color: #055160;
+            background-color: #cff4fc;
+            border-color: #b6effb;
+        }
     </style>
 </head>
 <body>
@@ -255,6 +285,7 @@
     </footer>
 
   <script>
+    const loggedInUser = "{{ username }}"; // Get username passed from Flask
     const ticketTableBody = document.getElementById('ticketTableBody');
     const searchInput = document.getElementById('searchInput');
     const detailSection = document.getElementById('ticketDetails');
@@ -298,67 +329,78 @@
     }
 
     async function showDetails(id) {
-      try {
-        const res = await fetch(`/tickets/${id}`);
-        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-        const ticket = await res.json();
-
-        if (!ticket) {
-            displayStatusMessage('Error: Ticket details not found.', 'error');
+        try {
+          const res = await fetch(`/tickets/${id}`);
+          if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+          const ticket = await res.json();
+      
+          if (!ticket || ticket.error) {
+              displayStatusMessage(ticket.error || 'Error: Ticket details not found.', 'error');
+              detailSection.classList.add('d-none');
+              return;
+          }
+          originalTicketData = {...ticket};
+      
+          document.getElementById('currentTicketId').value = ticket.id;
+          document.getElementById('detailTicketId').textContent = ticket.id;
+          document.getElementById('detailTitle').value = ticket.title || '';
+          document.getElementById('detailDescription').value = ticket.description || '';
+          document.getElementById('detailRemedies').value = ticket.remedies || '';
+          document.getElementById('detailStatus').value = ticket.status || 'Open';
+          document.getElementById('detailCreatedBy').textContent = ticket.created_by || 'N/A';
+          document.getElementById('detailCreatedAt').textContent = ticket.created_at ? new Date(ticket.created_at).toLocaleString() : 'N/A';
+      
+          const screenshotContainer = document.getElementById('screenshotContainer');
+          screenshotContainer.innerHTML = '';
+          if (ticket.file_path && Array.isArray(ticket.file_path) && ticket.file_path.length > 0 && ticket.file_path[0] !== "") {
+            ticket.file_path.forEach(path => {
+              if(path && path.trim()){
+                const img = document.createElement('img');
+                img.src = `/${path.trim()}`;
+                img.className = 'screenshot-img';
+                img.alt = 'Screenshot';
+                img.onerror = () => { img.style.display='none'; console.warn(`Failed to load image: /${path.trim()}`); };
+                screenshotContainer.appendChild(img);
+              }
+            });
+          }
+          if(screenshotContainer.childElementCount === 0) {
+              screenshotContainer.innerHTML = '<span class="text-muted" style="font-size: 0.9em;">No screenshots attached.</span>';
+          }
+      
+          const remedyDocLinkContainer = document.getElementById('remedyDocLinkContainer');
+          if (ticket.remedy_doc_path && ticket.remedy_doc_path.trim()) {
+              const remedyLink = document.createElement('a');
+              remedyLink.href = `/${ticket.remedy_doc_path.trim()}`;
+              remedyLink.textContent = ticket.remedy_doc_path.split('/').pop();
+              remedyLink.target = "_blank";
+              remedyLink.className = "remedy-doc-link";
+              remedyDocLinkContainer.innerHTML = '';
+              remedyDocLinkContainer.appendChild(remedyLink);
+          } else {
+              remedyDocLinkContainer.innerHTML = '<span class="text-muted" style="font-size: 0.9em;">No remedy document attached.</span>';
+          }
+      
+          // Conditionally show/hide Edit button
+          const editButton = document.getElementById('editBtn');
+          if (ticket.created_by === loggedInUser) {
+              editButton.classList.remove('d-none');
+          } else {
+              editButton.classList.add('d-none');
+          }
+          // Ensure save/cancel are hidden initially when details are shown
+          document.getElementById('saveBtn').classList.add('d-none');
+          document.getElementById('cancelBtn').classList.add('d-none');
+      
+          setEditMode(false); // Start in read-only mode
+          detailSection.classList.remove('d-none');
+        } catch (error) {
+            console.error('Failed to show ticket details:', error);
+            displayStatusMessage(`Error loading ticket details: ${error.message}`, 'error');
             detailSection.classList.add('d-none');
-            return;
         }
-        originalTicketData = {...ticket}; // Store for cancel
-
-        document.getElementById('currentTicketId').value = ticket.id;
-        document.getElementById('detailTicketId').textContent = ticket.id;
-        document.getElementById('detailTitle').value = ticket.title || '';
-        document.getElementById('detailDescription').value = ticket.description || '';
-        document.getElementById('detailRemedies').value = ticket.remedies || '';
-        document.getElementById('detailStatus').value = ticket.status || 'Open';
-        document.getElementById('detailCreatedBy').textContent = ticket.created_by || 'N/A';
-        document.getElementById('detailCreatedAt').textContent = ticket.created_at ? new Date(ticket.created_at).toLocaleString() : 'N/A';
-
-        const screenshotContainer = document.getElementById('screenshotContainer');
-        screenshotContainer.innerHTML = '';
-        if (ticket.file_path && Array.isArray(ticket.file_path) && ticket.file_path.length > 0 && ticket.file_path[0] !== "") {
-          ticket.file_path.forEach(path => {
-            if(path.trim()){
-              const img = document.createElement('img');
-              img.src = `/${path.trim()}`; // Path from server is like 'uploads/filename.png'
-              img.className = 'screenshot-img';
-              img.alt = 'Screenshot';
-              img.onerror = () => { img.style.display='none'; console.warn(`Failed to load image: /${path.trim()}`); };
-              screenshotContainer.appendChild(img);
-            }
-          });
-        }
-        if(screenshotContainer.childElementCount === 0) {
-            screenshotContainer.innerHTML = '<span class="text-muted">No screenshots attached.</span>';
-        }
-
-        const remedyDocLinkContainer = document.getElementById('remedyDocLinkContainer');
-        if (ticket.remedy_doc_path) {
-            const remedyLink = document.createElement('a');
-            remedyLink.href = `/${ticket.remedy_doc_path}`;
-            remedyLink.textContent = ticket.remedy_doc_path.split('/').pop(); // Show filename
-            remedyLink.target = "_blank";
-            remedyLink.className = "remedy-doc-link";
-            remedyDocLinkContainer.innerHTML = ''; // Clear previous
-            remedyDocLinkContainer.appendChild(remedyLink);
-        } else {
-            remedyDocLinkContainer.innerHTML = '<span class="text-muted">No remedy document attached.</span>';
-        }
-
-
-        setEditMode(false); // Start in read-only mode
-        detailSection.classList.remove('d-none');
-      } catch (error) {
-          console.error('Failed to show ticket details:', error);
-          displayStatusMessage(`Error loading ticket details: ${error.message}`, 'error');
-          detailSection.classList.add('d-none');
       }
-    }
+      
 
     function setEditMode(isEditing) {
         const fields = ['detailTitle', 'detailDescription', 'detailRemedies'];
@@ -426,11 +468,17 @@
       }
     }
 
-    function displayStatusMessage(message, type = 'info') {
-        const statusDiv = document.getElementById('statusMessages');
-        statusDiv.innerHTML = `<div class="alert alert-${type === 'error' ? 'danger' : type}" role="alert">${message}</div>`;
-        setTimeout(() => { statusDiv.innerHTML = ''; }, 5000); // Message disappears after 5 seconds
-    }
+    function displayStatusMessage(message, type = 'info') { // type can be 'success', 'info', 'danger'
+    const statusDiv = document.getElementById('statusMessages'); // Ensure this div exists
+    statusDiv.innerHTML = ''; // Clear previous messages
+    const alertDiv = document.createElement('div');
+    // Use 'danger' for type 'error' to match Bootstrap-like alert styling
+    alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type}`;
+    alertDiv.setAttribute('role', 'alert');
+    alertDiv.textContent = message;
+    statusDiv.appendChild(alertDiv);
+    setTimeout(() => { statusDiv.innerHTML = ''; }, 7000); // Message disappears after 7 seconds
+}
 
     let searchTimeout;
     searchInput.addEventListener('input', e => {
