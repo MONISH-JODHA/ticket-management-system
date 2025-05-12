@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>CloudKeeper Chatbot</title>
+    <title>CloudKeeper Support Chat</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         :root {
@@ -15,11 +15,12 @@
             --background-light: #F4F5F7;
             --white: #FFFFFF;
             --border-color: #DFE1E6;
-            --user-message-bg: #DEEBFF; /* Light blue for user messages */
-            --bot-message-bg: #E9ECEF;   /* Light grey for bot messages */
+            --user-message-bg: #DEEBFF;
+            --bot-message-bg: #E9ECEF;
             --font-family: 'Inter', 'Arial', sans-serif;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; overflow: hidden; /* Prevent double scrollbars */ }
         body {
             font-family: var(--font-family);
             line-height: 1.6;
@@ -27,40 +28,70 @@
             background-color: var(--background-light);
             display: flex;
             flex-direction: column;
-            height: 100vh; /* Full viewport height */
-            overflow: hidden; /* Prevent body scroll */
+            /* padding-top: 65px; /* Account for sticky header height - applied by header itself */
         }
-        .app-header { background-color: var(--white); padding: 15px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); flex-shrink: 0;}
+        .app-container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+        .app-header {
+            background-color: var(--white); padding: 12px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            position: fixed; /* Fixed header for chat page */
+            top: 0; left: 0; width: 100%;
+            z-index: 1010; border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0; /* Prevent header from shrinking */
+        }
         .header-content {
             display: flex; justify-content: space-between; align-items: center;
             max-width: 1200px; margin: 0 auto; padding: 0 20px;
         }
-        .app-logo-text { font-size: 1.5em; font-weight: 600; color: var(--text-dark); text-decoration: none; }
-        .app-logo-text img { height: 35px; vertical-align: middle; margin-right: 8px;}
-        .user-actions a {
-            color: var(--text-dark); font-weight: 500; margin-left: 15px;
-            text-decoration: none; padding: 8px 12px; border-radius: 6px;
-            transition: background-color 0.2s ease, color 0.2s ease;
+        .app-logo-text {
+            font-size: 1.4em; font-weight: 700; color: var(--text-dark);
+            text-decoration: none; display: flex; align-items: center;
         }
-        .user-actions a:hover { background-color: var(--background-light); color: var(--primary-color); }
-        .user-actions .btn-nav { border: 1px solid var(--border-color); }
-        .user-actions .btn-nav:hover { border-color: var(--primary-color); }
-        .user-actions .btn-logout { background-color: var(--primary-color); color: var(--white); }
-        .user-actions .btn-logout:hover { background-color: var(--secondary-color); border-color: var(--secondary-color); }
+        .app-logo-text img { height: 32px; vertical-align: middle; margin-right: 10px;}
+
+        .main-navigation { display: flex; align-items: center; }
+        .main-navigation .user-actions { display: flex; align-items: center; }
+        .main-navigation .user-actions a {
+            color: var(--text-light); font-weight: 500; margin-left: 10px;
+            text-decoration: none; padding: 8px 14px; border-radius: 6px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            display: inline-flex; align-items: center; font-size: 0.95em;
+        }
+        .main-navigation .user-actions a i { margin-right: 6px; font-size: 0.9em; }
+        .main-navigation .user-actions a:hover { background-color: var(--background-light); color: var(--primary-color); }
+        .main-navigation .user-actions .btn-nav { border: 1px solid transparent; }
+        .main-navigation .user-actions .btn-nav:hover { border-color: var(--primary-color); }
+        .main-navigation .user-actions .btn-logout {
+            background-color: var(--primary-color); color: var(--white); border: 1px solid var(--primary-color);
+        }
+        .main-navigation .user-actions .btn-logout:hover { background-color: var(--secondary-color); border-color: var(--secondary-color); }
+
+        .mobile-nav-toggle {
+            display: none; background: none; border: 1px solid var(--border-color);
+            padding: 8px 10px; color: var(--primary-color); font-size: 1.4em;
+            cursor: pointer; border-radius: 6px; line-height: 1; z-index: 1011;
+        }
+        .mobile-nav-toggle:hover { background-color: var(--background-light); }
+        .mobile-nav-toggle .fa-times { display: none; }
+        .mobile-nav-toggle.active .fa-bars { display: none; }
+        .mobile-nav-toggle.active .fa-times { display: inline; }
 
         .chat-container-wrapper {
-            flex-grow: 1; /* Takes available vertical space */
+            flex-grow: 1;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
-            overflow-y: auto; /* Scroll for main content if needed, though chatbox has its own */
+            padding: 20px; /* Padding around the chat window */
+            padding-top: calc(65px + 20px); /* Account for fixed header height + some space */
+            overflow: hidden; /* Prevent wrapper from scrolling, chat-messages will scroll */
+            width: 100%;
         }
         .chat-window {
             width: 100%;
             max-width: 700px;
-            height: calc(100vh - 150px); /* Adjust based on header/footer/input height */
-            max-height: 700px; /* Max height for the chat window */
+            height: 100%; /* Take full height of its flex container */
+            max-height: calc(100vh - 65px - 40px - 70px); /* Viewport - header - padding - input_area approx */
             background-color: var(--white);
             border-radius: 8px;
             box-shadow: 0 5px 25px rgba(0,0,0,0.1);
@@ -69,88 +100,111 @@
             overflow: hidden;
         }
         .chat-header {
-            background-color: var(--primary-color);
-            color: var(--white);
-            padding: 15px 20px;
-            font-size: 1.2em;
-            font-weight: 600;
-            text-align: center;
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
+            background-color: var(--primary-color); color: var(--white);
+            padding: 15px 20px; font-size: 1.2em; font-weight: 600;
+            text-align: center; border-top-left-radius: 8px; border-top-right-radius: 8px;
+            flex-shrink: 0;
         }
         .chat-messages {
-            flex-grow: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
+            flex-grow: 1; padding: 20px; overflow-y: auto;
+            display: flex; flex-direction: column;
         }
         .message {
-            padding: 10px 15px;
-            border-radius: 18px; /* More rounded for chat bubbles */
-            margin-bottom: 10px;
-            max-width: 75%;
-            line-height: 1.4;
-            word-wrap: break-word;
+            padding: 10px 15px; border-radius: 18px; margin-bottom: 10px;
+            max-width: 75%; line-height: 1.4; word-wrap: break-word;
         }
         .message.user {
-            background-color: var(--user-message-bg);
-            color: var(--text-dark);
-            align-self: flex-end;
-            border-bottom-right-radius: 5px; /* Flat corner for bubble tail */
+            background-color: var(--user-message-bg); color: var(--text-dark);
+            align-self: flex-end; border-bottom-right-radius: 5px;
         }
         .message.bot {
-            background-color: var(--bot-message-bg);
-            color: var(--text-dark);
-            align-self: flex-start;
-            border-bottom-left-radius: 5px; /* Flat corner */
+            background-color: var(--bot-message-bg); color: var(--text-dark);
+            align-self: flex-start; border-bottom-left-radius: 5px;
         }
-        .message pre { /* Styling for preformatted text from bot */
-            white-space: pre-wrap;
-            font-family: 'Courier New', Courier, monospace;
-            background-color: #f0f0f0;
-            padding: 8px;
-            border-radius: 4px;
-            font-size: 0.9em;
-            overflow-x: auto;
+        .message pre {
+            white-space: pre-wrap; font-family: 'Courier New', Courier, monospace;
+            background-color: #f0f0f0; padding: 8px;
+            border-radius: 4px; font-size: 0.9em; overflow-x: auto;
         }
-
         .chat-input-area {
-            display: flex;
-            padding: 15px;
-            border-top: 1px solid var(--border-color);
-            background-color: #f8f9fa;
+            display: flex; padding: 15px; border-top: 1px solid var(--border-color);
+            background-color: var(--background-light); flex-shrink: 0;
         }
         #userInput {
-            flex-grow: 1;
-            padding: 10px 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 20px; /* Rounded input */
-            margin-right: 10px;
-            font-size: 1em;
-            outline: none;
+            flex-grow: 1; padding: 10px 15px; border: 1px solid var(--border-color);
+            border-radius: 20px; margin-right: 10px; font-size: 1em; outline: none;
         }
-        #userInput:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.1rem rgba(0, 82, 204, 0.25);
-        }
+        #userInput:focus { border-color: var(--primary-color); box-shadow: 0 0 0 0.1rem rgba(0, 82, 204, 0.25); }
         #sendButton {
-            background-color: var(--cta-color);
-            color: var(--white);
-            border: none;
-            padding: 0 20px;
-            border-radius: 20px; /* Rounded button */
-            cursor: pointer;
-            font-size: 1em;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
+            background-color: var(--cta-color); color: var(--white); border: none;
+            padding: 0 20px; border-radius: 20px; cursor: pointer;
+            font-size: 1em; font-weight: 500; display: inline-flex; align-items: center;
         }
         #sendButton:hover { background-color: #008DAA; }
         #sendButton i { margin-left: 8px; }
+        #sendButton:disabled { background-color: #ccc; cursor: not-allowed; }
 
-        .app-footer { flex-shrink: 0; /* Prevent footer from overlapping */ }
+        /* Footer isn't typically shown on a full-screen chat page */
+        .app-footer { display: none; }
 
+        /* Responsive Header & Mobile Navigation Dropdown */
+        @media (max-width: 992px) {
+            .mobile-nav-toggle { display: block; }
+            .main-navigation {
+                display: none; flex-direction: column; align-items: stretch;
+                position: absolute; top: calc(100% + 1px); /* Position below the header */
+                left: 0; right: 0;
+                background-color: var(--white); padding: 10px 0;
+                border-top: 1px solid var(--border-color);
+                box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+                z-index: 1000; max-height: calc(100vh - 60px); overflow-y: auto;
+                transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+                transform: translateY(-10px); opacity: 0; pointer-events: none;
+            }
+            .main-navigation.active { display: flex; transform: translateY(0); opacity: 1; pointer-events: auto; }
+            .main-navigation .user-actions { flex-direction: column; width: 100%; }
+            .main-navigation .user-actions a {
+                margin-left: 0; margin-bottom: 0; padding: 14px 20px;
+                text-align: left; border-radius: 0; border: none;
+                border-bottom: 1px solid var(--background-light); width: 100%;
+            }
+            .main-navigation .user-actions a:last-child { border-bottom: none; }
+            .main-navigation .user-actions a:hover { background-color: var(--primary-color); color: var(--white); }
+            .main-navigation .user-actions .btn-logout { background-color: var(--primary-color); color: var(--white); border-radius: 0; }
+            .main-navigation .user-actions .btn-logout:hover { background-color: var(--secondary-color); }
+        }
+        @media (max-width: 768px) {
+            body { padding-top: 58px; /* Adjust if header height changes on mobile */ }
+            .chat-window {
+                margin: 0;
+                border-radius: 0;
+                max-height: calc(100vh - 58px - 60px); /* Viewport - mobile_header - input_area */
+                box-shadow: none;
+            }
+            .chat-container-wrapper {
+                padding: 0;
+                padding-top: 58px; /* Account for fixed header */
+                align-items: stretch; /* Make chat window fill height */
+            }
+            .chat-header { font-size: 1.1em; padding: 12px 15px; }
+            .chat-messages { padding: 15px; }
+            .message { max-width: 85%; } /* Allow messages to be a bit wider */
+            .chat-input-area { padding: 10px; }
+            #userInput { padding: 8px 12px; font-size: 0.95em; }
+            #sendButton { padding: 0 15px; font-size: 0.95em;}
+        }
+         @media (max-width: 576px) {
+            .user-actions a { padding: 10px 15px; }
+            .app-logo-text { font-size: 1.2em; }
+            .app-logo-text img { height: 28px; }
+            .mobile-nav-toggle { font-size: 1.2em; padding: 6px 8px;}
+            .chat-window {
+                 max-height: calc(100vh - 53px - 55px); /* Approx mobile header (if smaller) + input */
+            }
+             .chat-container-wrapper {
+                padding-top: 53px; /* If mobile header is smaller */
+            }
+        }
     </style>
 </head>
 <body>
@@ -158,23 +212,30 @@
         <div class="header-content">
             <a href="{{ url_for('home_or_main') }}" class="app-logo-text">
                 <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="CloudKeeper Logo">
-                 CloudKeeper
+                 
             </a>
-            <nav class="user-actions">
-                <a href="{{ url_for('form') }}" class="btn-nav"><i class="fas fa-plus-circle"></i> New Ticket</a>
-                <a href="{{ url_for('view_tickets_page') }}" class="btn-nav"><i class="fas fa-list-alt"></i> All Tickets</a>
-                <a href="{{ url_for('user_ticket_view_page') }}" class="btn-nav"><i class="fas fa-user-tag"></i> Tickets by User</a>
-                <a href="{{ url_for('index_counts_page') }}" class="btn-nav"><i class="fas fa-chart-bar"></i> User Counts</a>
-                <a href="{{ url_for('logout') }}" class="btn-logout">Logout <i class="fas fa-sign-out-alt"></i></a>
+            <button class="mobile-nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+                <i class="fas fa-bars" aria-hidden="true"></i>
+                <i class="fas fa-times" aria-hidden="true" style="display:none;"></i>
+            </button>
+            <nav class="main-navigation" id="mainNav">
+                <div class="user-actions">
+                    <a href="{{ url_for('form') }}" class="btn-nav"><i class="fas fa-plus-circle"></i> New Ticket</a>
+                    <a href="{{ url_for('view_tickets_page') }}" class="btn-nav"><i class="fas fa-list-alt"></i> All Tickets</a>
+                    <a href="{{ url_for('user_ticket_view_page') }}" class="btn-nav"><i class="fas fa-user-tag"></i> Tickets by User</a>
+                    <a href="{{ url_for('index_counts_page') }}" class="btn-nav"><i class="fas fa-chart-bar"></i> User Counts</a>
+                    <a href="{{ url_for('gdoc_importer_page') }}" class="btn-nav"><i class="fab fa-google-drive"></i> Import GDoc</a>
+                    <a href="{{ url_for('logout') }}" class="btn-logout">Logout <i class="fas fa-sign-out-alt"></i></a>
+                </div>
             </nav>
         </div>
     </header>
 
     <div class="chat-container-wrapper">
         <div class="chat-window">
-            <div class="chat-header">CloudKeeper Support Chat</div>
+            <div class="chat-header">CloudKeeper Support Assistant</div>
             <div class="chat-messages" id="chatMessages">
-                <div class="message bot">Hello {{ username }}! How can I help you with your tickets today? You can ask things like "show ticket 123", "tickets by user@cloudkeeper.com", "open tickets", or "search tickets for login issue".</div>
+                <div class="message bot">Hello {{ username }}! How can I assist you with your tickets today? Try asking "show ticket 123", "tickets by user@cloudkeeper.com", or "open tickets".</div>
             </div>
             <div class="chat-input-area">
                 <input type="text" id="userInput" placeholder="Type your message..." autocomplete="off">
@@ -183,81 +244,93 @@
         </div>
     </div>
 
-    <!-- Footer can be minimal or removed for a full-app feel on this page -->
-    <!-- <footer class="app-footer">
-        <p>© 2024 CloudKeeper (Team Laadla). All rights reserved.</p>
-    </footer> -->
-
     <script>
         const chatMessagesEl = document.getElementById('chatMessages');
         const userInputEl = document.getElementById('userInput');
         const sendButtonEl = document.getElementById('sendButton');
 
-        function addMessageToChat(text, sender) { // sender is 'user' or 'bot'
+        function addMessageToChat(text, sender) {
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('message', sender);
-            
-            // To render newlines from backend correctly in HTML
-            // And to wrap potential code blocks or structured data in <pre>
             if (sender === 'bot' && (text.includes('\\n') || text.includes('```'))) {
                 const pre = document.createElement('pre');
-                pre.textContent = text.replace(/\\n/g, '\\n'); // Ensure newlines are rendered
+                pre.textContent = text.replace(/\\n/g, '\n');
                 messageDiv.appendChild(pre);
             } else {
                 messageDiv.textContent = text;
             }
-            
             chatMessagesEl.appendChild(messageDiv);
-            chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight; // Auto-scroll to bottom
+            chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
         }
 
         async function sendMessageToBot() {
             const messageText = userInputEl.value.trim();
             if (!messageText) return;
-
             addMessageToChat(messageText, 'user');
-            userInputEl.value = ''; // Clear input
-            sendButtonEl.disabled = true; // Disable button while processing
+            userInputEl.value = '';
+            const originalButtonText = sendButtonEl.innerHTML;
+            sendButtonEl.disabled = true;
             sendButtonEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-
-
             try {
                 const response = await fetch("{{ url_for('chat_api') }}", {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json', },
                     body: JSON.stringify({ message: messageText }),
                 });
-
+                const data = await response.json(); // Try to parse JSON regardless of ok status for error messages
                 if (!response.ok) {
-                    const errorData = await response.json().catch(()=>null);
-                    throw new Error(errorData?.reply || `Server error: ${response.status}`);
+                    throw new Error(data.reply || data.error || `Server error: ${response.status}`);
                 }
-
-                const data = await response.json();
                 addMessageToChat(data.reply, 'bot');
-
             } catch (error) {
                 console.error("Chat API error:", error);
                 addMessageToChat(`Sorry, I encountered an error: ${error.message}`, 'bot');
             } finally {
                 sendButtonEl.disabled = false;
-                sendButtonEl.innerHTML = 'Send <i class="fas fa-paper-plane"></i>';
-                userInputEl.focus(); // Re-focus input
+                sendButtonEl.innerHTML = originalButtonText; // Restore original text with icon
+                userInputEl.focus();
             }
         }
 
         sendButtonEl.addEventListener('click', sendMessageToBot);
         userInputEl.addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
-                event.preventDefault(); // Prevent default form submission if it were in a form
+                event.preventDefault();
                 sendMessageToBot();
             }
         });
+        userInputEl.focus();
 
-        userInputEl.focus(); // Focus input on page load
+        // --- Mobile Navigation Toggle ---
+        const mobileNavToggle = document.querySelector('.mobile-nav-toggle');
+        const mainNav = document.getElementById('mainNav'); // Ensure your <nav> has id="mainNav"
+        const hamburgerIcon = mobileNavToggle ? mobileNavToggle.querySelector('.fa-bars') : null;
+        const closeIcon = mobileNavToggle ? mobileNavToggle.querySelector('.fa-times') : null;
 
+        if (mobileNavToggle && mainNav && hamburgerIcon && closeIcon) {
+            mobileNavToggle.addEventListener('click', function() {
+                const isExpanded = mainNav.classList.toggle('active');
+                mobileNavToggle.classList.toggle('active');
+                mobileNavToggle.setAttribute('aria-expanded', isExpanded);
+                hamburgerIcon.style.display = isExpanded ? 'none' : 'inline';
+                closeIcon.style.display = isExpanded ? 'inline' : 'none';
+            });
+        }
+        document.addEventListener('click', function(event) {
+            if (mainNav && mainNav.classList.contains('active')) {
+                const isClickInsideNav = mainNav.contains(event.target);
+                const isClickOnToggle = mobileNavToggle ? mobileNavToggle.contains(event.target) : false;
+                if (!isClickInsideNav && !isClickOnToggle) {
+                    mainNav.classList.remove('active');
+                    mobileNavToggle.classList.remove('active');
+                    mobileNavToggle.setAttribute('aria-expanded', 'false');
+                    if (hamburgerIcon && closeIcon) {
+                        hamburgerIcon.style.display = 'inline';
+                        closeIcon.style.display = 'none';
+                    }
+                }
+            }
+        });
     </script>
 </body>
 </html>

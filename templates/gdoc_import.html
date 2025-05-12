@@ -17,10 +17,10 @@
             --border-color: #DFE1E6;
             --success-bg: #E3FCEF;
             --success-text: #006644;
-            --error-bg: #FFEBEE;  /* For error messages */
-            --error-text: #B00020; /* For error messages */
-            --info-bg: #E7F3FF;    /* For info messages */
-            --info-text: #0052CC;  /* For info messages */
+            --error-bg: #FFEBEE;
+            --error-text: #B00020;
+            --info-bg: #E7F3FF;
+            --info-text: #0052CC;
             --form-label-color: #42526E;
             --font-family: 'Inter', 'Arial', sans-serif;
         }
@@ -30,50 +30,68 @@
             line-height: 1.6;
             color: var(--text-dark);
             background-color: var(--background-light);
+            padding-top: 65px; /* Account for sticky header height */
         }
         .app-container { max-width: 900px; margin: 0 auto; padding: 0 20px; }
-        .app-header { background-color: var(--white); padding: 15px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+
+        .app-header {
+            background-color: var(--white); padding: 12px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            position: fixed; top: 0; left: 0; width: 100%;
+            z-index: 1010; border-bottom: 1px solid var(--border-color);
+        }
         .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            max-width: 1200px; margin: 0 auto; padding: 0 20px;
         }
-        .app-logo-text { font-size: 1.5em; font-weight: 600; color: var(--text-dark); text-decoration: none; }
-        .app-logo-text img { height: 35px; vertical-align: middle; margin-right: 8px;}
-        .user-actions a {
-            color: var(--text-dark); font-weight: 500; margin-left: 15px;
-            text-decoration: none; padding: 8px 12px; border-radius: 6px;
+        .app-logo-text {
+            font-size: 1.4em; font-weight: 700; color: var(--text-dark);
+            text-decoration: none; display: flex; align-items: center;
+        }
+        .app-logo-text img { height: 32px; vertical-align: middle; margin-right: 10px;}
+
+        .main-navigation { display: flex; align-items: center; }
+        .main-navigation .user-actions { display: flex; align-items: center; }
+        .main-navigation .user-actions a {
+            color: var(--text-light); font-weight: 500; margin-left: 10px;
+            text-decoration: none; padding: 8px 14px; border-radius: 6px;
             transition: background-color 0.2s ease, color 0.2s ease;
+            display: inline-flex; align-items: center; font-size: 0.95em;
         }
-        .user-actions a:hover { background-color: var(--background-light); color: var(--primary-color); }
-        .user-actions .btn-nav { border: 1px solid var(--border-color); }
-        .user-actions .btn-nav:hover { border-color: var(--primary-color); }
-        .user-actions .btn-logout { background-color: var(--primary-color); color: var(--white); }
-        .user-actions .btn-logout:hover { background-color: var(--secondary-color); border-color: var(--secondary-color); }
+        .main-navigation .user-actions a i { margin-right: 6px; font-size: 0.9em; }
+        .main-navigation .user-actions a:hover { background-color: var(--background-light); color: var(--primary-color); }
+        .main-navigation .user-actions .btn-nav { border: 1px solid transparent; }
+        .main-navigation .user-actions .btn-nav:hover { border-color: var(--primary-color); }
+        .main-navigation .user-actions .btn-logout {
+            background-color: var(--primary-color); color: var(--white); border: 1px solid var(--primary-color);
+        }
+        .main-navigation .user-actions .btn-logout:hover { background-color: var(--secondary-color); border-color: var(--secondary-color); }
+
+        .mobile-nav-toggle {
+            display: none; background: none; border: 1px solid var(--border-color);
+            padding: 8px 10px; color: var(--primary-color); font-size: 1.4em;
+            cursor: pointer; border-radius: 6px; line-height: 1; z-index: 1011;
+        }
+        .mobile-nav-toggle:hover { background-color: var(--background-light); }
+        .mobile-nav-toggle .fa-times { display: none; }
+        .mobile-nav-toggle.active .fa-bars { display: none; }
+        .mobile-nav-toggle.active .fa-times { display: inline; }
 
         .main-form-content { padding: 40px 0; }
         .form-card {
-            background-color: var(--white);
-            border-radius: 8px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-            overflow: hidden;
+            background-color: var(--white); border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08); overflow: hidden;
         }
         .form-card-header {
-            background-color: var(--primary-color);
-            color: var(--white);
-            padding: 20px;
-            text-align: center;
+            background-color: var(--primary-color); color: var(--white);
+            padding: 20px; text-align: center;
         }
         .form-card-header h3 { margin: 0; font-size: 1.6em; font-weight: 600; }
         .form-card-body { padding: 30px; }
 
         .status-message {
-            padding: 15px; border-radius: 6px;
-            margin-bottom: 20px; text-align: left; /* Changed to left */
-            font-size: 0.95em;
+            padding: 15px; border-radius: 6px; margin-bottom: 20px;
+            font-size: 0.95em; text-align: left;
         }
         .status-message.success { background-color: var(--success-bg); color: var(--success-text); border: 1px solid #B2DFDB; }
         .status-message.error { background-color: var(--error-bg); color: var(--error-text); border: 1px solid #FFCDD2; }
@@ -100,8 +118,7 @@
         .gdoc-fetch-section .form-group { flex-grow: 1; margin-bottom: 0; }
         .btn-fetch-gdoc {
             background-color: var(--secondary-color); color: var(--white);
-            padding: 0 20px; /* Let height be defined by content + padding */
-            height: 48px; /* Explicit height to match input approx */
+            padding: 0 20px; height: 48px;
             font-weight: 500; border: none; border-radius: 6px; cursor: pointer;
             white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;
         }
@@ -122,10 +139,50 @@
             font-size: 0.9em; color: var(--text-light); border-top: 1px solid var(--border-color);
         }
         hr.section-divider {
-            border: none;
-            height: 1px;
-            background-color: var(--border-color);
-            margin: 30px 0;
+            border: none; height: 1px;
+            background-color: var(--border-color); margin: 30px 0;
+        }
+
+        @media (max-width: 992px) {
+            .mobile-nav-toggle { display: block; }
+            .main-navigation {
+                display: none; flex-direction: column; align-items: stretch;
+                position: absolute; top: calc(100% + 1px);
+                left: 0; right: 0;
+                background-color: var(--white); padding: 10px 0;
+                border-top: 1px solid var(--border-color);
+                box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+                z-index: 1000; max-height: calc(100vh - 65px); overflow-y: auto;
+                transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+                transform: translateY(-10px); opacity: 0; pointer-events: none;
+            }
+            .main-navigation.active { display: flex; transform: translateY(0); opacity: 1; pointer-events: auto; }
+            .main-navigation .user-actions { flex-direction: column; width: 100%; }
+            .main-navigation .user-actions a {
+                margin-left: 0; margin-bottom: 0; padding: 14px 20px;
+                text-align: left; border-radius: 0; border: none;
+                border-bottom: 1px solid var(--background-light); width: 100%;
+            }
+            .main-navigation .user-actions a:last-child { border-bottom: none; }
+            .main-navigation .user-actions a:hover { background-color: var(--primary-color); color: var(--white); }
+            .main-navigation .user-actions .btn-logout { background-color: var(--primary-color); color: var(--white); border-radius: 0; }
+            .main-navigation .user-actions .btn-logout:hover { background-color: var(--secondary-color); }
+        }
+
+        @media (max-width: 768px) {
+            body { padding-top: 58px; }
+            .page-title { font-size: 1.6em; margin-bottom: 20px; }
+            .main-form-content { padding: 20px 0; } /* Consistent with other main-content */
+            .form-card-body { padding: 20px; }
+            .form-card-header h3 { font-size: 1.3em; }
+            .gdoc-fetch-section { flex-direction: column; align-items: stretch;}
+            .btn-fetch-gdoc { width: 100%; margin-top:10px; }
+        }
+         @media (max-width: 576px) {
+            .user-actions a { padding: 10px 15px; }
+            .app-logo-text { font-size: 1.2em; }
+            .app-logo-text img { height: 28px; }
+            .mobile-nav-toggle { font-size: 1.2em; padding: 6px 8px;}
         }
     </style>
 </head>
@@ -135,12 +192,19 @@
             <a href="{{ url_for('home_or_main') }}" class="app-logo-text">
                 <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="CloudKeeper Logo">
             </a>
-            <nav class="user-actions">
-                <a href="{{ url_for('view_tickets_page') }}" class="btn-nav"><i class="fas fa-list-alt"></i> All Tickets</a>
-                <a href="{{ url_for('form') }}" class="btn-nav"><i class="fas fa-plus-circle"></i> Submit Manually</a>
-                <a href="{{ url_for('user_ticket_view_page') }}" class="btn-nav"><i class="fas fa-user-tag"></i> Tickets by User</a>
-                <a href="{{ url_for('index_counts_page') }}" class="btn-nav"><i class="fas fa-chart-bar"></i> User Counts</a>
-                <a href="{{ url_for('logout') }}" class="btn-logout">Logout <i class="fas fa-sign-out-alt"></i></a>
+            <button class="mobile-nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+                <i class="fas fa-bars" aria-hidden="true"></i>
+                <i class="fas fa-times" aria-hidden="true" style="display:none;"></i>
+            </button>
+            <nav class="main-navigation" id="mainNav">
+                <div class="user-actions">
+                    <a href="{{ url_for('chatbot_page') }}" class="btn-nav"><i class="fas fa-comments"></i> Chat Assistant</a>
+                    <a href="{{ url_for('view_tickets_page') }}" class="btn-nav"><i class="fas fa-list-alt"></i> All Tickets</a>
+                    <a href="{{ url_for('user_ticket_view_page') }}" class="btn-nav"><i class="fas fa-user-tag"></i> Tickets by User</a>
+                    <a href="{{ url_for('form') }}" class="btn-nav"><i class="fas fa-plus-circle"></i> Submit Manually</a>
+                    <a href="{{ url_for('index_counts_page') }}" class="btn-nav"><i class="fas fa-chart-bar"></i> User Counts</a>
+                    <a href="{{ url_for('logout') }}" class="btn-logout">Logout <i class="fas fa-sign-out-alt"></i></a>
+                </div>
             </nav>
         </div>
     </header>
@@ -203,7 +267,7 @@
     </main>
 
     <footer class="app-footer">
-        <p>© 2024 CloudKeeper (Team Laadla). All rights reserved.</p>
+        <p>© 2025 CloudKeeper (Team Laadle). All rights reserved.</p>
     </footer>
 
     <script>
@@ -221,6 +285,36 @@
             const now = new Date();
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             document.getElementById('created_at').value = now.toISOString().slice(0, 16);
+
+            const mobileNavToggle = document.querySelector('.mobile-nav-toggle');
+            const mainNav = document.getElementById('mainNav');
+            const hamburgerIcon = mobileNavToggle ? mobileNavToggle.querySelector('.fa-bars') : null;
+            const closeIcon = mobileNavToggle ? mobileNavToggle.querySelector('.fa-times') : null;
+
+            if (mobileNavToggle && mainNav && hamburgerIcon && closeIcon) {
+                mobileNavToggle.addEventListener('click', function() {
+                    const isExpanded = mainNav.classList.toggle('active');
+                    mobileNavToggle.classList.toggle('active');
+                    mobileNavToggle.setAttribute('aria-expanded', isExpanded);
+                    hamburgerIcon.style.display = isExpanded ? 'none' : 'inline';
+                    closeIcon.style.display = isExpanded ? 'inline' : 'none';
+                });
+            }
+            document.addEventListener('click', function(event) {
+                if (mainNav && mainNav.classList.contains('active')) {
+                    const isClickInsideNav = mainNav.contains(event.target);
+                    const isClickOnToggle = mobileNavToggle ? mobileNavToggle.contains(event.target) : false;
+                    if (!isClickInsideNav && !isClickOnToggle) {
+                        mainNav.classList.remove('active');
+                        mobileNavToggle.classList.remove('active');
+                        mobileNavToggle.setAttribute('aria-expanded', 'false');
+                        if (hamburgerIcon && closeIcon) {
+                            hamburgerIcon.style.display = 'inline';
+                            closeIcon.style.display = 'none';
+                        }
+                    }
+                }
+            });
         });
 
         fetchGdocContentBtn.addEventListener('click', async () => {
@@ -245,20 +339,17 @@
                     headers: { 'Content-Type': 'application/json', },
                     body: JSON.stringify({ gdoc_url: gdocUrl }),
                 });
-
                 const data = await response.json();
-
                 if (!response.ok) {
                     throw new Error(data.detail || `HTTP error! status: ${response.status}`);
                 }
-
                 if (data.success && data.content) {
                     remediesTextarea.value = data.content;
                     const lines = data.content.split('\\n');
                     if (lines.length > 0 && !titleInput.value) {
                         titleInput.value = lines[0].substring(0, 100).trim();
                     }
-                    if (lines.length > 0 && !descriptionTextarea.value) { // Use first few lines for description
+                    if (lines.length > 0 && !descriptionTextarea.value) {
                         descriptionTextarea.value = lines.slice(0, 3).join('\\n').substring(0, 300).trim();
                     }
                     showGdocStatus("Content fetched successfully and populated below.", "success");
@@ -268,7 +359,7 @@
             } catch (error) {
                 console.error("Error fetching GDoc content:", error);
                 showGdocStatus(`Error: ${error.message}`, "error");
-                remediesTextarea.value = `Could not fetch content. Please check the URL or try again.\\nError: ${error.message}`;
+                remediesTextarea.value = `Could not fetch content. Error: ${error.message}`;
             } finally {
                 fetchGdocContentBtn.disabled = false;
                 fetchGdocContentBtn.innerHTML = originalButtonText;
@@ -292,25 +383,21 @@
                     headers: { 'Content-Type': 'application/json', },
                     body: JSON.stringify(dataToSubmit)
                 });
-
                 const result = await response.json();
-
                 if (!response.ok) {
                      throw new Error(result.detail || result.error || `HTTP error! status: ${response.status}`);
                 }
-
                 if (result.success !== false) {
                     showFinalStatus(result.message || "Ticket submitted successfully!", "success");
                     ticketForm.reset();
                     remediesTextarea.value = '';
                     descriptionTextarea.value = '';
                     titleInput.value = '';
-                    // Re-fetch default date
                     const now = new Date();
                     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
                     document.getElementById('created_at').value = now.toISOString().slice(0, 16);
                 } else {
-                    throw new Error(result.message || result.detail || "Failed to submit ticket. Server indicated failure.");
+                    throw new Error(result.message || result.detail || "Failed to submit ticket.");
                 }
             } catch (error) {
                 console.error("Error submitting ticket:", error);
@@ -332,7 +419,7 @@
             finalStatusMessageEl.className = 'status-message';
             if (type) finalStatusMessageEl.classList.add(type);
             finalStatusMessageEl.classList.remove('d-none');
-            gdocStatusMessageEl.classList.add('d-none'); // Hide GDoc status when final status shows
+            gdocStatusMessageEl.classList.add('d-none');
         }
     </script>
 </body>

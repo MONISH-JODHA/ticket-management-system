@@ -1,4 +1,4 @@
 uploads
 .env
 tickets.db
-.gitignore
+.gitignoredocker.env
