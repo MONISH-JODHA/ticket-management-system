@@ -617,6 +617,8 @@ def chat_api():
 @login_required
 def chatbot_page(): return render_template('chatbot.html', username=session.get('username'))
 
+
+
 if __name__ == '__main__':
     init_db()
     print("DB Path:", os.path.abspath(DB_PATH))
