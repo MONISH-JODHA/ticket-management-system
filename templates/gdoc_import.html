@@ -7,23 +7,24 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         :root {
-            --primary-color: #0052CC;
-            --secondary-color: #0065FF;
-            --cta-color: #00A3BF;
-            --text-dark: #172B4D;
-            --text-light: #505F79;
-            --background-light: #F4F5F7;
+            --primary-color: #0052CC; /* CloudKeeper Blue */
+            --secondary-color: #0065FF; /* Slightly Lighter Blue */
+            --cta-color: #00A3BF; /* Teal for CTAs */
+            --text-dark: #172B4D; /* Dark blue-gray for text */
+            --text-light: #505F79; /* Lighter gray for secondary text */
+            --background-light: #F4F5F7; /* Very light gray background */
             --white: #FFFFFF;
-            --border-color: #DFE1E6;
-            --success-bg: #E3FCEF;
-            --success-text: #006644;
-            --error-bg: #FFEBEE;
-            --error-text: #B00020;
-            --info-bg: #E7F3FF;
-            --info-text: #0052CC;
-            --form-label-color: #42526E;
-            --font-family: 'Inter', 'Arial', sans-serif;
+            --border-color: #DFE1E6; /* Light gray for borders */
+            --success-bg: #E3FCEF; /* Light green */
+            --success-text: #006644; /* Dark green */
+            --error-bg: #FFEBEE; /* Light red */
+            --error-text: #B00020; /* Dark red */
+            --info-bg: #E7F3FF; /* Light blue */
+            --info-text: #0052CC; /* Primary blue */
+            --form-label-color: #42526E; /* Medium Gray for labels */
+            --font-family: 'Inter', 'Arial', sans-serif; /* Modern, clean font */
         }
+        /* Basic Reset & Global Styles */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: var(--font-family);
@@ -34,6 +35,7 @@
         }
         .app-container { max-width: 900px; margin: 0 auto; padding: 0 20px; }
 
+        /* Header Styling */
         .app-header {
             background-color: var(--white); padding: 12px 0;
             box-shadow: 0 2px 8px rgba(0,0,0,0.07);
@@ -50,6 +52,7 @@
         }
         .app-logo-text img { height: 32px; vertical-align: middle; margin-right: 10px;}
 
+        /* Navigation */
         .main-navigation { display: flex; align-items: center; }
         .main-navigation .user-actions { display: flex; align-items: center; }
         .main-navigation .user-actions a {
@@ -67,16 +70,18 @@
         }
         .main-navigation .user-actions .btn-logout:hover { background-color: var(--secondary-color); border-color: var(--secondary-color); }
 
+        /* Mobile Navigation Toggle */
         .mobile-nav-toggle {
             display: none; background: none; border: 1px solid var(--border-color);
             padding: 8px 10px; color: var(--primary-color); font-size: 1.4em;
             cursor: pointer; border-radius: 6px; line-height: 1; z-index: 1011;
         }
         .mobile-nav-toggle:hover { background-color: var(--background-light); }
-        .mobile-nav-toggle .fa-times { display: none; }
-        .mobile-nav-toggle.active .fa-bars { display: none; }
-        .mobile-nav-toggle.active .fa-times { display: inline; }
+        .mobile-nav-toggle .fa-times { display: none; } /* Initially hide close icon */
+        .mobile-nav-toggle.active .fa-bars { display: none; } /* Hide hamburger when active */
+        .mobile-nav-toggle.active .fa-times { display: inline; } /* Show close icon when active */
 
+        /* Main Content & Form Card */
         .main-form-content { padding: 40px 0; }
         .form-card {
             background-color: var(--white); border-radius: 8px;
@@ -89,15 +94,17 @@
         .form-card-header h3 { margin: 0; font-size: 1.6em; font-weight: 600; }
         .form-card-body { padding: 30px; }
 
+        /* Status Messages */
         .status-message {
             padding: 15px; border-radius: 6px; margin-bottom: 20px;
-            font-size: 0.95em; text-align: left;
+            font-size: 0.95em; text-align: left; /* Changed from center */
         }
         .status-message.success { background-color: var(--success-bg); color: var(--success-text); border: 1px solid #B2DFDB; }
         .status-message.error { background-color: var(--error-bg); color: var(--error-text); border: 1px solid #FFCDD2; }
         .status-message.info { background-color: var(--info-bg); color: var(--info-text); border: 1px solid #B3E5FC; }
         .d-none { display: none !important; }
 
+        /* Form Elements */
         .form-group { margin-bottom: 20px; }
         .form-label {
             display: block; margin-bottom: 8px; font-weight: 500;
@@ -112,13 +119,14 @@
         .form-textarea { min-height: 120px; resize: vertical; }
         .form-control:focus, .form-textarea:focus {
             border-color: var(--primary-color); outline: 0;
-            box-shadow: 0 0 0 0.2rem rgba(0, 82, 204, 0.25);
+            box-shadow: 0 0 0 0.2rem rgba(0, 82, 204, 0.25); /* Focus ring */
         }
+        /* GDoc Fetch Section */
         .gdoc-fetch-section { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 25px; }
-        .gdoc-fetch-section .form-group { flex-grow: 1; margin-bottom: 0; }
+        .gdoc-fetch-section .form-group { flex-grow: 1; margin-bottom: 0; } /* Make input take available space */
         .btn-fetch-gdoc {
             background-color: var(--secondary-color); color: var(--white);
-            padding: 0 20px; height: 48px;
+            padding: 0 20px; /* Adjusted padding */ height: 48px; /* Match form-control height */
             font-weight: 500; border: none; border-radius: 6px; cursor: pointer;
             white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;
         }
@@ -126,14 +134,16 @@
         .btn-fetch-gdoc:disabled { background-color: #ccc; cursor: not-allowed; }
         .btn-fetch-gdoc i { margin-right: 8px; }
 
+        /* Submit Button */
         .btn-submit-ticket {
             background-color: var(--cta-color); color: var(--white); padding: 12px 20px;
             font-size: 1.1em; font-weight: 600; border: none; border-radius: 6px;
             width: 100%; cursor: pointer; transition: background-color 0.3s ease;
             display: inline-flex; align-items: center; justify-content: center;
         }
-        .btn-submit-ticket:hover { background-color: #008DAA; }
+        .btn-submit-ticket:hover { background-color: #008DAA; /* Darker teal */ }
         .btn-submit-ticket i { margin-right: 8px; }
+        /* Footer */
         .app-footer {
             text-align: center; padding: 20px 0; margin-top: 30px;
             font-size: 0.9em; color: var(--text-light); border-top: 1px solid var(--border-color);
@@ -143,20 +153,23 @@
             background-color: var(--border-color); margin: 30px 0;
         }
 
-        @media (max-width: 992px) {
+        /* Responsive Adjustments */
+        @media (max-width: 992px) { /* Tablet and below */
             .mobile-nav-toggle { display: block; }
             .main-navigation {
-                display: none; flex-direction: column; align-items: stretch;
-                position: absolute; top: calc(100% + 1px);
+                display: none; /* Initially hidden */
+                flex-direction: column; align-items: stretch;
+                position: absolute; top: calc(100% + 1px); /* Position below header */
                 left: 0; right: 0;
                 background-color: var(--white); padding: 10px 0;
                 border-top: 1px solid var(--border-color);
                 box-shadow: 0 5px 10px rgba(0,0,0,0.1);
-                z-index: 1000; max-height: calc(100vh - 65px); overflow-y: auto;
+                z-index: 1000; max-height: calc(100vh - 65px); overflow-y: auto; /* Scrollable if too long */
+                /* Animation */
                 transition: transform 0.3s ease-out, opacity 0.3s ease-out;
                 transform: translateY(-10px); opacity: 0; pointer-events: none;
             }
-            .main-navigation.active { display: flex; transform: translateY(0); opacity: 1; pointer-events: auto; }
+            .main-navigation.active { display: flex; transform: translateY(0); opacity: 1; pointer-events: auto;}
             .main-navigation .user-actions { flex-direction: column; width: 100%; }
             .main-navigation .user-actions a {
                 margin-left: 0; margin-bottom: 0; padding: 14px 20px;
@@ -169,8 +182,8 @@
             .main-navigation .user-actions .btn-logout:hover { background-color: var(--secondary-color); }
         }
 
-        @media (max-width: 768px) {
-            body { padding-top: 58px; }
+        @media (max-width: 768px) { /* Mobile */
+            body { padding-top: 58px; } /* Adjust for smaller header */
             .page-title { font-size: 1.6em; margin-bottom: 20px; }
             .main-form-content { padding: 20px 0; } /* Consistent with other main-content */
             .form-card-body { padding: 20px; }
@@ -178,7 +191,7 @@
             .gdoc-fetch-section { flex-direction: column; align-items: stretch;}
             .btn-fetch-gdoc { width: 100%; margin-top:10px; }
         }
-         @media (max-width: 576px) {
+         @media (max-width: 576px) { /* Smaller mobile */
             .user-actions a { padding: 10px 15px; }
             .app-logo-text { font-size: 1.2em; }
             .app-logo-text img { height: 28px; }
@@ -191,6 +204,7 @@
         <div class="header-content">
             <a href="{{ url_for('home_or_main') }}" class="app-logo-text">
                 <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="CloudKeeper Logo">
+                
             </a>
             <button class="mobile-nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
                 <i class="fas fa-bars" aria-hidden="true"></i>
@@ -198,11 +212,12 @@
             </button>
             <nav class="main-navigation" id="mainNav">
                 <div class="user-actions">
-                    <a href="{{ url_for('chatbot_page') }}" class="btn-nav"><i class="fas fa-comments"></i> Chat Assistant</a>
+                    <a href="{{ url_for('form') }}" class="btn-nav"><i class="fas fa-plus-circle"></i> New Ticket</a>
                     <a href="{{ url_for('view_tickets_page') }}" class="btn-nav"><i class="fas fa-list-alt"></i> All Tickets</a>
                     <a href="{{ url_for('user_ticket_view_page') }}" class="btn-nav"><i class="fas fa-user-tag"></i> Tickets by User</a>
-                    <a href="{{ url_for('form') }}" class="btn-nav"><i class="fas fa-plus-circle"></i> Submit Manually</a>
                     <a href="{{ url_for('index_counts_page') }}" class="btn-nav"><i class="fas fa-chart-bar"></i> User Counts</a>
+                    <a href="{{ url_for('gdoc_importer_page') }}" class="btn-nav active"><i class="fab fa-google-drive"></i> Import GDoc</a>
+                    <a href="{{ url_for('chatbot_page') }}" class="btn-nav"><i class="fas fa-comments"></i> Chat Assistant</a>
                     <a href="{{ url_for('logout') }}" class="btn-logout">Logout <i class="fas fa-sign-out-alt"></i></a>
                 </div>
             </nav>
@@ -251,7 +266,7 @@
                         </div>
                         <div class="form-group">
                             <label for="created_by" class="form-label">Submitted By <span style="color:red;">*</span></label>
-                            <input type="text" id="created_by" name="created_by" class="form-control" value="{{ username }}" readonly required>
+                            <input type="text" id="created_by" name="created_by" class="form-control" value="{{ username if username else 'Unknown User' }}" readonly required>
                         </div>
                         <div class="form-group">
                             <label for="created_at" class="form-label">Date of Occurrence <span style="color:red;">*</span></label>
@@ -283,7 +298,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             const now = new Date();
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); 
             document.getElementById('created_at').value = now.toISOString().slice(0, 16);
 
             const mobileNavToggle = document.querySelector('.mobile-nav-toggle');
@@ -323,10 +338,16 @@
                 showGdocStatus("Please enter a Google Doc URL.", "error");
                 return;
             }
-            if (!gdocUrl.includes("/pub") && !gdocUrl.includes("/pubhtml")) {
-                showGdocStatus("Please ensure the link is a 'Published to web' Google Doc URL (usually contains /pub or /pubhtml).", "error");
+
+            if (!gdocUrl.includes("/pubhtml") && !gdocUrl.includes("/pub")) {
+                 if (gdocUrl.includes("/document/d/") && gdocUrl.includes("/edit")) {
+                    showGdocStatus("This looks like an editor link. Please use a 'Published to web' link (File > Share > Publish to web).", "error");
+                } else {
+                    showGdocStatus("Please ensure the link is a 'Published to web' Google Doc URL (usually contains /pub or /pubhtml).", "error");
+                }
                 return;
             }
+
 
             showGdocStatus("Fetching content...", "info");
             const originalButtonText = fetchGdocContentBtn.innerHTML;
@@ -340,17 +361,19 @@
                     body: JSON.stringify({ gdoc_url: gdocUrl }),
                 });
                 const data = await response.json();
-                if (!response.ok) {
-                    throw new Error(data.detail || `HTTP error! status: ${response.status}`);
+                
+                if (!response.ok) { 
+                    throw new Error(data.detail || `HTTP error! Status: ${response.status}`);
                 }
+
                 if (data.success && data.content) {
                     remediesTextarea.value = data.content;
-                    const lines = data.content.split('\\n');
-                    if (lines.length > 0 && !titleInput.value) {
+                    const lines = data.content.split('\n'); 
+                    if (lines.length > 0 && !titleInput.value) { 
                         titleInput.value = lines[0].substring(0, 100).trim();
                     }
-                    if (lines.length > 0 && !descriptionTextarea.value) {
-                        descriptionTextarea.value = lines.slice(0, 3).join('\\n').substring(0, 300).trim();
+                    if (lines.length > 0 && !descriptionTextarea.value) { 
+                        descriptionTextarea.value = lines.slice(0, 3).join('\n').substring(0, 300).trim();
                     }
                     showGdocStatus("Content fetched successfully and populated below.", "success");
                 } else {
@@ -359,7 +382,6 @@
             } catch (error) {
                 console.error("Error fetching GDoc content:", error);
                 showGdocStatus(`Error: ${error.message}`, "error");
-                remediesTextarea.value = `Could not fetch content. Error: ${error.message}`;
             } finally {
                 fetchGdocContentBtn.disabled = false;
                 fetchGdocContentBtn.innerHTML = originalButtonText;
@@ -383,25 +405,37 @@
                     headers: { 'Content-Type': 'application/json', },
                     body: JSON.stringify(dataToSubmit)
                 });
-                const result = await response.json();
-                if (!response.ok) {
+                
+                let result;
+                try {
+                    result = await response.json();
+                } catch (e) {
+                
+                    console.error("Failed to parse server response as JSON:", e);
+                    const textResponse = await response.text(); 
+                    console.error("Server raw response:", textResponse);
+                    throw new Error(`Server returned non-JSON response. Status: ${response.status}. Response: ${textResponse.substring(0,100)}...`);
+                }
+
+                if (!response.ok) { 
                      throw new Error(result.detail || result.error || `HTTP error! status: ${response.status}`);
                 }
-                if (result.success !== false) {
+                
+                if (result.success === true) { 
                     showFinalStatus(result.message || "Ticket submitted successfully!", "success");
-                    ticketForm.reset();
-                    remediesTextarea.value = '';
+                    ticketForm.reset(); 
+                    remediesTextarea.value = ''; 
                     descriptionTextarea.value = '';
                     titleInput.value = '';
                     const now = new Date();
                     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
                     document.getElementById('created_at').value = now.toISOString().slice(0, 16);
-                } else {
-                    throw new Error(result.message || result.detail || "Failed to submit ticket.");
+                } else { 
+                    throw new Error(result.detail || result.message || "Failed to submit ticket (server indicated failure).");
                 }
-            } catch (error) {
+            } catch (error) { 
                 console.error("Error submitting ticket:", error);
-                showFinalStatus(`Error: ${error.message}`, "error");
+                 showFinalStatus(`Error: ${error.message}`, "error");
             } finally {
                 submitTicketBtnGdoc.disabled = false;
                 submitTicketBtnGdoc.innerHTML = originalButtonText;
@@ -410,16 +444,16 @@
 
         function showGdocStatus(message, type) {
             gdocStatusMessageEl.textContent = message;
-            gdocStatusMessageEl.className = 'status-message';
+            gdocStatusMessageEl.className = 'status-message'; 
             if (type) gdocStatusMessageEl.classList.add(type);
             gdocStatusMessageEl.classList.remove('d-none');
         }
         function showFinalStatus(message, type) {
             finalStatusMessageEl.textContent = message;
-            finalStatusMessageEl.className = 'status-message';
+            finalStatusMessageEl.className = 'status-message'; 
             if (type) finalStatusMessageEl.classList.add(type);
             finalStatusMessageEl.classList.remove('d-none');
-            gdocStatusMessageEl.classList.add('d-none');
+            gdocStatusMessageEl.classList.add('d-none'); 
         }
     </script>
 </body>

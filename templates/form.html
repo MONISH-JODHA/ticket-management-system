@@ -225,12 +225,13 @@
             </button>
             <nav class="main-navigation" id="mainNav">
                 <div class="user-actions">
-                    <a href="{{ url_for('chatbot_page') }}" class="btn-nav"><i class="fas fa-comments"></i> Chat Assistant</a>
+                    <a href="{{ url_for('form') }}" class="btn-nav"><i class="fas fa-plus-circle"></i> New Ticket</a>
                     <a href="{{ url_for('view_tickets_page') }}" class="btn-nav"><i class="fas fa-list-alt"></i> All Tickets</a>
                     <a href="{{ url_for('user_ticket_view_page') }}" class="btn-nav"><i class="fas fa-user-tag"></i> Tickets by User</a>
-                    <a href="{{ url_for('gdoc_importer_page') }}" class="btn-nav"><i class="fab fa-google-drive"></i> Import GDoc</a>
                     <a href="{{ url_for('index_counts_page') }}" class="btn-nav"><i class="fas fa-chart-bar"></i> User Counts</a>
-                    <a href="{{ url_for('logout') }}" class="btn-logout">Logout <i class="fas fa-sign-out-alt"></i></a>
+                    <a href="{{ url_for('gdoc_importer_page') }}" class="btn-nav"><i class="fab fa-google-drive"></i> Import GDoc</a>
+                    <a href="{{ url_for('chatbot_page') }}" class="btn-nav"><i class="fas fa-comments"></i> Chat Assistant</a>
+                    <a href="{{ url_for('logout') }}" class="btn-logout">Logout  <i class="fas fa-sign-out-alt"></i></a>
                 </div>
             </nav>
         </div>
@@ -297,7 +298,14 @@
                             <input type="datetime-local" id="created_at" name="created_at" class="form-control" required>
                         </div>
 
-                        <button type="submit" class="btn-submit-ticket"><i class="fas fa-paper-plane"></i> Submit Ticket</button>
+                        <button type="submit" formaction="{{ url_for('submit_ticket', redirect_pref='stay') }}" class="btn-submit-ticket">
+                            <i class="fas fa-paper-plane"></i> Submit & Stay
+                        </button>
+                        <br><br>
+                        <button type="submit" formaction="{{ url_for('submit_ticket', redirect_pref='redirect_to_view') }}" class="btn-submit-ticket">
+                            <i class="fas fa-paper-plane"></i> Submit & View All
+                        </button>
+
                     </form>
                 </div>
             </div>
@@ -309,7 +317,7 @@
     </footer>
 
     <script>
-        const loggedInUsername = "{{ username }}"; // For potential future use if needed in global scope
+        const loggedInUsername = "{{ username }}"; 
 
         document.addEventListener('DOMContentLoaded', function() {
             const now = new Date();
@@ -412,8 +420,8 @@
 
         function showTemporaryMessage(message, type, containerId) {
             const container = document.getElementById(containerId);
-            if (!container) { // Fallback to alert if specific container not found
-                 const generalContainer = document.querySelector('.form-card-body'); // Try to find a general one
+            if (!container) { 
+                 const generalContainer = document.querySelector('.form-card-body'); 
                  const tempDiv = document.createElement('div');
                  tempDiv.className = `message-placeholder ${type}`;
                  tempDiv.innerHTML = `<p>${message}</p>`;
@@ -425,19 +433,16 @@
             setTimeout(() => { container.innerHTML = ''; }, 5000);
         }
 
-        // Socket.IO client setup for real-time notifications (optional for this form page)
         const socket = io();
         socket.on('connect', () => { console.log('Socket.IO connected (Form Page)!'); });
         socket.on('disconnect', () => { console.log('Socket.IO disconnected (Form Page).'); });
 
         socket.on('new_ticket_notification', function(data) {
-            // Could show a toast if a new ticket by *another* user is created while on this page
-            if (data.created_by !== "{{ username }}") { // Check if it's not the current user's ticket
+            if (data.created_by !== "{{ username }}") { 
                 showToastNotification(`Activity: New ticket #${data.id} created by ${data.created_by}`, 'info');
             }
         });
          socket.on('ticket_update_notification', function(data){
-            // Only show toast if the update is for *this* user's ticket by *someone else*
             if(data.created_by === "{{ username }}" && data.updated_by !== "{{ username }}"){
                  showToastNotification(data.message, 'info');
             }
@@ -448,8 +453,6 @@
             const toastContainer = document.getElementById('toastNotifications');
             if (!toastContainer) {
                 console.warn("Toast container for general notifications not found.");
-                // Maybe add a simple alert as fallback if really needed on this page
-                // alert(message);
                 return;
             }
             const toast = document.createElement('div');

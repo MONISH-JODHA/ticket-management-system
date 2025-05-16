@@ -227,11 +227,12 @@
             </button>
             <nav class="main-navigation" id="mainNav">
                 <div class="user-actions">
-                    <a href="{{ url_for('chatbot_page') }}" class="btn-nav"><i class="fas fa-comments"></i> Chat Assistant</a>
+                    <a href="{{ url_for('form') }}" class="btn-nav"><i class="fas fa-plus-circle"></i> New Ticket</a>
                     <a href="{{ url_for('view_tickets_page') }}" class="btn-nav"><i class="fas fa-list-alt"></i> All Tickets</a>
                     <a href="{{ url_for('user_ticket_view_page') }}" class="btn-nav"><i class="fas fa-user-tag"></i> Tickets by User</a>
-                    <a href="{{ url_for('form') }}" class="btn-nav"><i class="fas fa-plus-circle"></i> New Ticket</a>
+                    <a href="{{ url_for('index_counts_page') }}" class="btn-nav"><i class="fas fa-chart-bar"></i> User Counts</a>
                     <a href="{{ url_for('gdoc_importer_page') }}" class="btn-nav"><i class="fab fa-google-drive"></i> Import GDoc</a>
+                    <a href="{{ url_for('chatbot_page') }}" class="btn-nav"><i class="fas fa-comments"></i> Chat Assistant</a>
                     <a href="{{ url_for('logout') }}" class="btn-logout">Logout <i class="fas fa-sign-out-alt"></i></a>
                 </div>
             </nav>
@@ -411,9 +412,6 @@
             const labels = data.map(user => {
                 if (user.username) {
                     const namePart = user.username.split('@')[0];
-                    // Option 1: Just the part before @
-                    // return namePart;
-                    // Option 2: Part before first dot, capitalized
                     const firstName = namePart.split('.')[0];
                     return firstName.charAt(0).toUpperCase() + firstName.slice(1);
                 }
@@ -438,7 +436,7 @@
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-                    layout: { padding: { left: 10, right: 20, top: 10, bottom: 20 } }, // Adjust left padding as needed
+                    layout: { padding: { left: 10, right: 20, top: 10, bottom: 20 } }, 
                     scales: {
                         x: { beginAtZero: true, ticks: { precision: 0 } },
                         y: { ticks: { autoSkip: false, font: { size: 11 } } }
@@ -578,9 +576,7 @@
         }
         
         async function refreshDashboardData() {
-            // For usersDataFromFlask, if you want it to be truly dynamic on refresh,
-            // you'd fetch it from an API endpoint similar to how status and time_trends are fetched.
-            // For now, it re-renders based on the potentially sorted usersDataFromFlask.
+
             renderTable(usersDataFromFlask);
             if (usersDataFromFlask && usersDataFromFlask.length > 0) {
                 updateSortIcons();
@@ -614,7 +610,6 @@
                 });
             });
 
-            // Mobile Nav Toggle
             const mobileNavToggle = document.querySelector('.mobile-nav-toggle');
             const mainNav = document.getElementById('mainNav');
             const hamburgerIcon = mobileNavToggle ? mobileNavToggle.querySelector('.fa-bars') : null;

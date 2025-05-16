@@ -361,11 +361,12 @@
             </button>
             <nav class="main-navigation" id="mainNav">
                 <div class="user-actions">
-                    <a href="{{ url_for('chatbot_page') }}" class="btn-nav"><i class="fas fa-comments"></i> Chat Assistant</a>
-                    <a href="{{ url_for('user_ticket_view_page') }}" class="btn-nav"><i class="fas fa-user-tag"></i> Tickets by User</a>
                     <a href="{{ url_for('form') }}" class="btn-nav"><i class="fas fa-plus-circle"></i> New Ticket</a>
-                    <a href="{{ url_for('gdoc_importer_page') }}" class="btn-nav"><i class="fab fa-google-drive"></i> Import GDoc</a>
+                    <a href="{{ url_for('view_tickets_page') }}" class="btn-nav"><i class="fas fa-list-alt"></i> All Tickets</a>
+                    <a href="{{ url_for('user_ticket_view_page') }}" class="btn-nav"><i class="fas fa-user-tag"></i> Tickets by User</a>
                     <a href="{{ url_for('index_counts_page') }}" class="btn-nav"><i class="fas fa-chart-bar"></i> User Counts</a>
+                    <a href="{{ url_for('gdoc_importer_page') }}" class="btn-nav"><i class="fab fa-google-drive"></i> Import GDoc</a>
+                    <a href="{{ url_for('chatbot_page') }}" class="btn-nav"><i class="fas fa-comments"></i> Chat Assistant</a>
                     <a href="{{ url_for('logout') }}" class="btn-logout">Logout <i class="fas fa-sign-out-alt"></i></a>
                     
                 </div>
@@ -685,7 +686,7 @@
           body: JSON.stringify(updatedData)
         });
         const result = await res.json().catch(() => ({error: `HTTP error ${res.status}`}));
-        if (res.ok && result.message) { // Check for result.message to ensure it's a success JSON
+        if (res.ok && result.message) { 
           displayStatusMessage(result.message, 'success');
           setEditMode(false);
           loadTickets(searchInput.value);
@@ -723,7 +724,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         loadTickets();
         const mobileNavToggle = document.querySelector('.mobile-nav-toggle');
-        const mainNav = document.getElementById('mainNav'); // Targeting the correct ID
+        const mainNav = document.getElementById('mainNav'); 
         const hamburgerIcon = mobileNavToggle ? mobileNavToggle.querySelector('.fa-bars') : null;
         const closeIcon = mobileNavToggle ? mobileNavToggle.querySelector('.fa-times') : null;
 
